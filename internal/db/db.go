@@ -18,7 +18,7 @@ type User struct {
 	Token    string
 }
 
-func (db *DB) NewDB() (DB, error) {
+func NewDB() (DB, error) {
 	newDB := DB{}
 	cwd, err := os.Getwd()
 	if err != nil {

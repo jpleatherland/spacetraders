@@ -19,10 +19,10 @@ func main() {
 		DB: dbConnection,
 	}
 	http.HandleFunc("POST /create", apiConf.createUser)
-	http.HandleFunc("POST /login", userLogin)
+	http.HandleFunc("POST /login", apiConf.userLogin)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 type apiConfig struct {
-	DB *db.DB
+	DB db.DB
 }
