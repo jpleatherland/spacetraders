@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jpleatherland/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/db"
 )
 
 func main() {

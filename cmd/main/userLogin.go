@@ -13,7 +13,6 @@ type User struct {
 }
 
 func userLogin(rw http.ResponseWriter, req *http.Request) {
-	req.body
 }
 
 func (apiConf *apiConfig) createUser(rw http.ResponseWriter, req *http.Request) {
