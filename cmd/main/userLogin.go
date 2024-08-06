@@ -31,10 +31,12 @@ func (apiConf *apiConfig) createUser(rw http.ResponseWriter, req *http.Request) 
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 
-	hashedPassword := bcrypt.GenerateFromPassword([]byte(newUser.Password), 4)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 4)
 	if err != nil {
-
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
+
+	createAgent(newUser.Username, newUser.Faction)
 
 	dbUser := db.User{
 		Username: newUser.Username,
@@ -45,9 +47,10 @@ func (apiConf *apiConfig) createUser(rw http.ResponseWriter, req *http.Request) 
 
 	err = apiConf.DB.CreateUser(dbUser)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusConflict)
 	}
 	
+	rw.WriteHeader(http.StatusCreated)
 }
 
 func (apiConf *apiConfig) userLogin(rw http.ResponseWriter, req *http.Request) {
