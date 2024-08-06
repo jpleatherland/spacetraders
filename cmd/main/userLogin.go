@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -14,9 +15,6 @@ type User struct {
 	Password string `json:"password"`
 	Faction  string `json:"faction"`
 	Token    string `json:"token"`
-}
-
-func (apiConf *apiConfig) userLogin(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (apiConf *apiConfig) createUser(rw http.ResponseWriter, req *http.Request) {
@@ -28,18 +26,31 @@ func (apiConf *apiConfig) createUser(rw http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	newToken, err := GenerateToken(newUser.Username, 100, "lsakjdfoiasdf")
+	newToken, err := GenerateToken(newUser.Username, 100, apiConf.Secret)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
+
+	hashedPassword := bcrypt.GenerateFromPassword([]byte(newUser.Password), 4)
+	if err != nil {
+
+	}
+
 	dbUser := db.User{
 		Username: newUser.Username,
-		Password: newUser.Password,
+		Password: hashedPassword,
 		Faction:  newUser.Faction,
 		Token:    newToken,
 	}
-	apiConf.DB.CreateUser(dbUser)
 
+	err = apiConf.DB.CreateUser(dbUser)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
+	
+}
+
+func (apiConf *apiConfig) userLogin(rw http.ResponseWriter, req *http.Request) {
 }
 
 func GenerateToken(userEmail string, tokenExpiryTime int32, jwtSecret string) (string, error) {
@@ -49,7 +60,7 @@ func GenerateToken(userEmail string, tokenExpiryTime int32, jwtSecret string) (s
 	}
 
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    "chirpy",
+		Issuer:    "jpleatherland/spacetraders",
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiryTime)),
 		Subject:   userEmail,

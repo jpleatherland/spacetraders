@@ -3,11 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/jpleatherland/spacetraders/internal/db"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading .env file")
+	}
+	jwt:= os.Getenv("JWT_SECRET")
 	dbConnection, err := db.NewDB()
 	if err != nil {
 		log.Fatal(err)
@@ -17,6 +24,7 @@ func main() {
 	}
 	apiConf := apiConfig{
 		DB: dbConnection,
+		Secret: jwt,
 	}
 	http.HandleFunc("POST /create", apiConf.createUser)
 	http.HandleFunc("POST /login", apiConf.userLogin)
@@ -25,4 +33,5 @@ func main() {
 
 type apiConfig struct {
 	DB db.DB
+	Secret string
 }
