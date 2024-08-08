@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -30,12 +29,17 @@ func createAgent(username, faction string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(bytes), &result)
+	if err != nil {
+		return "", err
+	}
 
-	fmt.Println(string(bytes))
-	return string(bytes), nil
+	return result["data"].(map[string]interface{})["token"].(string), nil
 }

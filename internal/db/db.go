@@ -3,37 +3,38 @@ package db
 import (
 	"database/sql"
 	"log"
-	"os"
 	"path"
+	"sync"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type DB struct {
 	database *sql.DB
+	mu       sync.RWMutex
 }
 
 type User struct {
 	Username string
-	Password string
+	Password []byte
 	Faction  string
 	Token    string
 }
 
-func NewDB() (DB, error) {
+func NewDB(DB_PATH string) (*DB, error) {
 	newDB := DB{}
-	cwd, err := os.Getwd()
+	dbConn, err := sql.Open("sqlite3", path.Join(DB_PATH, "spacetraders.db"))
 	if err != nil {
-		return newDB, err
-	}
-	dbConn, err := sql.Open("sqlite3", path.Join(cwd, "spacetraders.db"))
-	if err != nil {
-		return newDB, err
+		return &newDB, err
 	}
 	newDB.database = dbConn
-	return newDB, nil
+	return &newDB, nil
 }
 
 func (db *DB) CreateUser(user User) error {
-	insertSQL := "INSERT INTO users(username, password, faction, accessToken) VALUES(?, ?, ?)"
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	insertSQL := "INSERT INTO users(username, password, faction, accessToken) VALUES(?, ?, ?, ?)"
 	statement, err := db.database.Prepare(insertSQL)
 	if err != nil {
 		log.Println(err.Error())
@@ -45,4 +46,12 @@ func (db *DB) CreateUser(user User) error {
 		return err
 	}
 	return nil
+}
+
+func (db *DB) ReadUserFromDB(username string) (User, error) {
+	var user User
+	selectSQL := `SELECT * FROM users WHERE username = ?;`
+	row := db.database.QueryRow(selectSQL, username)
+	row.Scan(&user.Username, &user.Password, &user.Faction, &user.Token)
+	return user, nil
 }

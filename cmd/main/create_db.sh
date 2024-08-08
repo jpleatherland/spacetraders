@@ -8,6 +8,7 @@ USERSCHEMA=$(cat <<EOF
 CREATE TABLE users (
     username TEXT PRIMARY KEY,
     password BLOB,
+    faction TEXT,
     accessToken TEXT
 );
 EOF

@@ -14,8 +14,8 @@ func main() {
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
-	jwt:= os.Getenv("JWT_SECRET")
-	dbConnection, err := db.NewDB()
+	jwt := os.Getenv("JWT_SECRET")
+	dbConnection, err := db.NewDB(os.Getenv("DB_PATH"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 	apiConf := apiConfig{
-		DB: dbConnection,
+		DB:     dbConnection,
 		Secret: jwt,
 	}
 	http.HandleFunc("POST /create", apiConf.createUser)
@@ -32,6 +32,6 @@ func main() {
 }
 
 type apiConfig struct {
-	DB db.DB
+	DB     *db.DB
 	Secret string
 }

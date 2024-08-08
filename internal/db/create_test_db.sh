@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # Define the database file
-DB_FILE="spacetraders.db"
+DB_FILE="/tmp/spacetraders.db"
 
 # Define the schema as a variable
 USERSCHEMA=$(cat <<EOF
 CREATE TABLE users (
     username TEXT PRIMARY KEY,
     password BLOB,
+    faction TEXT,
     accessToken TEXT
 );
 EOF
