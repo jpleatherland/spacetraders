@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+  <title>SpaceTraders Login</title>
+</head>
+
+<body>
+  <header>
+  </header>
+  <main>
+    <h1>Login</h1>
+    <form>
+      <div class="container">
+        <label for="uname"><b>Username</b></label>
+        <input type="text" placeholder="Enter Username" name="uname" id="username" required>
+
+        <label for="psw"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="psw" id="password" required>
+
+        <div id="createUser">
+          <button type="submit" hx-post="/userlogin">Login</button>
+          <button hx-get="/createForm" hx-target="#createUser">Create new user</button>
+        </div>
+
+      </div>
+
+      <div class="container" style="background-color:#f1f1f1">
+        <button type="button" class="cancelbtn">Cancel</button>
+        <span class="psw">Forgot <a href="#">password?</a></span>
+      </div>
+    </form>
+
+    <!-- Main content of the website goes here -->
+  </main>
+  <footer>
+    <!-- Site footer content goes here -->
+  </footer>
+  <script src="index.js"></script>
+</body>
+
+</html>

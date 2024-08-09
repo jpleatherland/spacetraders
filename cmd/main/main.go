@@ -26,8 +26,12 @@ func main() {
 		DB:     dbConnection,
 		Secret: jwt,
 	}
-	http.HandleFunc("POST /create", apiConf.createUser)
-	http.HandleFunc("POST /login", apiConf.userLogin)
+	http.HandleFunc("POST /createUser", apiConf.createUser)
+	http.HandleFunc("POST /userlogin", apiConf.userLogin)
+	http.HandleFunc("GET /createForm", createForm)
+	http.HandleFunc("GET /login", apiConf.loginPage)
+	http.HandleFunc("GET /home", apiConf.homePage)
+	http.HandleFunc("GET /", apiConf.index)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

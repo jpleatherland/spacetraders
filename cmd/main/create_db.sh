@@ -18,7 +18,7 @@ REFRESHSCHEMA=$(cat <<EOF
 CREATE TABLE refreshTokens (
     refreshToken TEXT PRIMARY KEY,
     accessToken TEXT,
-    createdAt INTEGER
+    expiryTime INTEGER
 );
 EOF
 )

@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -84,6 +85,44 @@ func TestReadUser(t *testing.T) {
 	if dbUser.Username != user.Username {
 		t.Errorf("incorrect username: got %v, want %v", dbUser.Username, user.Username)
 	}
+}
+
+func TestWriteRefreshToken(t *testing.T) {
+	resources, err := setupTestEnvironment()
+	if err != nil {
+		t.Errorf("failed to set up test environment: %v", err)
+	}
+	defer teardownTestEnvironment(*resources)
+
+	err = resources.DB.WriteRefreshToken("abcdefg", "efghijk", time.Now().Add(time.Duration(24 * time.Hour)).Unix())
+	if err != nil {
+		t.Errorf("failed to write refresh token to db: %v",  err)
+	}
+}
+
+func TestReadRefreshToken(t *testing.T) {
+	resources, err := setupTestEnvironment()
+	if err != nil {
+		t.Errorf("failed to set up test environment: %v", err)
+	}
+	defer teardownTestEnvironment(*resources)
+
+	refreshToken := "abcdefg"
+	accessToken := "efghijk"
+
+	err = resources.DB.WriteRefreshToken(refreshToken, accessToken, time.Now().Add(time.Duration(24 * time.Hour)).Unix())
+	if err != nil {
+		t.Errorf("failed to write refresh token to db: %v",  err)
+	}
+
+	dbToken, err := resources.DB.ReadRefreshToken(refreshToken)
+	if err != nil {
+		t.Errorf("refresh token read failed: %v ", err)
+	}
+	if dbToken != accessToken {
+		t.Errorf("got %v, want %v", dbToken, accessToken)
+	}
+
 }
 
 func CreateUser(resources TestResources) (User, error) {
