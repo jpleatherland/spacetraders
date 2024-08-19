@@ -5,7 +5,7 @@ import (
 	"text/template"
 )
 
-func (apiConf *apiConfig) homePage(rw http.ResponseWriter, req *http.Request) {
+func (resources *Resources) homePage(rw http.ResponseWriter, req *http.Request) {
 	tmpl := template.Must(template.ParseFiles("views/homepage.html"))
 
 	err := tmpl.Execute(rw, nil)

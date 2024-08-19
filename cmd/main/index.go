@@ -4,8 +4,8 @@ import (
 	"net/http"
 )
 
-func (apiConf *apiConfig) index(rw http.ResponseWriter, req *http.Request) {
-	isLoggedIn := apiConf.checkIfUserLoggedIn(req)
+func (resources *Resources) index(rw http.ResponseWriter, req *http.Request) {
+	isLoggedIn := resources.checkIfUserLoggedIn(req)
 
 	if isLoggedIn {
 		http.Redirect(rw, req, "/homepage", 301)
@@ -14,7 +14,7 @@ func (apiConf *apiConfig) index(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (apiConf *apiConfig) checkIfUserLoggedIn(req *http.Request) bool {
+func (resources *Resources) checkIfUserLoggedIn(req *http.Request) bool {
 	refreshToken := ""
 
 	for _, cookie := range req.Cookies() {
@@ -27,8 +27,8 @@ func (apiConf *apiConfig) checkIfUserLoggedIn(req *http.Request) bool {
 		return false
 	}
 
-	_, err := apiConf.DB.ReadRefreshToken(refreshToken)
+	//_, err := resources.DB.ReadRefreshToken(refreshToken)
 
-	return err == nil
+	return false
 
 }

@@ -4,9 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"database/sql"
 
 	"github.com/joho/godotenv"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -14,28 +16,38 @@ func main() {
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
-	jwt := os.Getenv("JWT_SECRET")
-	dbConnection, err := db.NewDB(os.Getenv("DB_PATH"))
+	JWT := os.Getenv("JWT_SECRET")
+	DB_CONN_STRING :=os.Getenv("DB_CONN_STRING")
+	database, err := sql.Open("postgres", DB_CONN_STRING)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err != nil {
-		log.Fatal(err)
+
+	dbQueries := db.New(database)
+
+	resources := Resources{
+		DB:     dbQueries,
+		Secret: JWT,
 	}
-	apiConf := apiConfig{
-		DB:     dbConnection,
-		Secret: jwt,
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /createUser", resources.createUser)
+	mux.HandleFunc("POST /userlogin", resources.userLogin)
+	mux.HandleFunc("GET /createForm", createForm)
+	mux.HandleFunc("GET /login", resources.loginPage)
+	mux.HandleFunc("GET /home", resources.homePage)
+	mux.HandleFunc("GET /", resources.index)
+
+	server := &http.Server{
+		Addr: ":8080",
+		Handler: mux,
 	}
-	http.HandleFunc("POST /createUser", apiConf.createUser)
-	http.HandleFunc("POST /userlogin", apiConf.userLogin)
-	http.HandleFunc("GET /createForm", createForm)
-	http.HandleFunc("GET /login", apiConf.loginPage)
-	http.HandleFunc("GET /home", apiConf.homePage)
-	http.HandleFunc("GET /", apiConf.index)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	log.Fatal(server.ListenAndServe())
 }
 
-type apiConfig struct {
-	DB     *db.DB
+type Resources struct {
+	DB     *db.Queries
 	Secret string
 }

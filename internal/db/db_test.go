@@ -2,40 +2,38 @@ package db
 
 import (
 	"os"
+	"database/sql"
 	"os/exec"
 	"path"
 	"testing"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/pressly/goose"
 )
 
-type TestResources struct {
-	DB         *DB
-	DBLocation string
-	Secret     string
-}
-
-func setupTestEnvironment() (*TestResources, error) {
-	var tr TestResources
-	// create the tempdb at path in .env
+func setupTestEnvironment() (*sql.DB, *database.Queries, error) {
 	err := godotenv.Load()
 	if err != nil {
-		return &tr, err
+		return err
 	}
-	err = setupDB()
+	DB_CONN_STRING := os.Getenv("DB_CONN_TEST")
+	pgdb, err := sql.Open("postgres", DB_CONN_STRING+"?sslmode=disable")
 	if err != nil {
-		return &tr, err
+		return err
 	}
-	// connect to db
-	db, err := NewDB(os.Getenv("DB_PATH"))
+	defer pgdb.Close()
+	pgdb.Exec("CREATE DATABASE spacetraders_test")
+	db, err := sql.Open("postgres", DB_CONN_STRING+"/spacetraders_test?sslmode=disable")
 	if err != nil {
-		return &tr, err
+		return err
 	}
-	tr.DB = db
-	tr.DBLocation = path.Join(os.Getenv("DB_PATH"), "spacetraders.db")
+	err = goose.Up(db, "./sql/schema")
+	if err != nil {
+		return err
+	}
 
-	return &tr, nil
+	return nil
 }
 
 func teardownTestEnvironment(resources TestResources) {
@@ -45,11 +43,7 @@ func teardownTestEnvironment(resources TestResources) {
 }
 
 func setupDB() error {
-	cmd := exec.Command("bash", "-c", "./create_test_db.sh")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
