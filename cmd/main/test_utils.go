@@ -1,17 +1,21 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
-	"log"
-	"net/http/httptest"
-	"net/http"
-	"os"
-	"bytes"
-	"fmt"
 	"errors"
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/jpleatherland/spacetraders/internal/db"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 )
@@ -72,7 +76,10 @@ func createTestUser(resources *Resources, name, password string) error {
 	userBody := struct {
 		Name     string `json:"name"`
 		Password string `json:"password"`
-	}{}
+	}{
+		Name:     name,
+		Password: password,
+	}
 	payload, err := json.Marshal(userBody)
 	if err != nil {
 		return err
@@ -82,9 +89,43 @@ func createTestUser(resources *Resources, name, password string) error {
 	res := httptest.NewRecorder()
 	resources.createUser(res, req)
 
-	if res.Result().StatusCode != http.StatusCreated{
+	if res.Result().StatusCode != http.StatusCreated {
 		errorMsg := fmt.Sprintf("create user response status incorrect, expected: %v got: %v", http.StatusCreated, res.Result().Status)
 		return errors.New(errorMsg)
 	}
 	return nil
+}
+
+func testUserLogin(resources *Resources, name, password string) (*http.Cookie, error) {
+	baseURL := "http://localhost:8080"
+	data := url.Values{}
+	data.Set("name", name)
+	data.Set("password", password)
+
+	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
+	res := httptest.NewRecorder()
+	resources.userLogin(res, req)
+
+	expected := http.StatusCreated
+	got := res.Result().StatusCode
+
+	if got != expected {
+		errorMsg := fmt.Sprintf("failed to login, expected: %v, got: %v", expected, got)
+		return nil, errors.New(errorMsg)
+	}
+
+	for _, cookie := range res.Result().Cookies() {
+		if cookie.Name == "spacetradersSession" {
+			return cookie, nil
+		}
+	}
+
+	return nil, errors.New("Session cookie not found")
+}
+
+func testGetSessionById(resources *Resources, cookie *http.Cookie) (db.Session, error) {
+	ctx := context.Background()
+	session := db.Session{}
+	session, err := resources.DB.GetSessionById(ctx, cookie.Value)
+	return session, err
 }

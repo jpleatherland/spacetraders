@@ -20,7 +20,7 @@ type CreateAgentParams struct {
 	ID     uuid.UUID `json:"id"`
 	Name   string    `json:"name"`
 	Token  string    `json:"token"`
-	UserID string    `json:"user_id"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) error {
@@ -53,7 +53,7 @@ type GetAgentsByUserIdRow struct {
 	Name string    `json:"name"`
 }
 
-func (q *Queries) GetAgentsByUserId(ctx context.Context, userID string) ([]GetAgentsByUserIdRow, error) {
+func (q *Queries) GetAgentsByUserId(ctx context.Context, userID uuid.UUID) ([]GetAgentsByUserIdRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAgentsByUserId, userID)
 	if err != nil {
 		return nil, err

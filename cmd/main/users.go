@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/db"
@@ -15,73 +13,82 @@ import (
 func (resources *Resources) createUser(rw http.ResponseWriter, req *http.Request) {
 	newUser, err := FormUserToStruct(req)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		respondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if newUser.Name == "" || newUser.Password == "" {
+		respondWithHTMLError(rw, "Please enter username and password", http.StatusBadRequest)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 4)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		respondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	dbUser := db.CreateUserParams{
-		ID: uuid.New(),
-		Name: newUser.Name,
+		ID:       uuid.New(),
+		Name:     newUser.Name,
 		Password: string(hashedPassword[:]),
 	}
 	ctx := context.Background()
 
 	_, err = resources.DB.CreateUser(ctx, dbUser)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusConflict)
+		respondWithHTMLError(rw, err.Error(), http.StatusConflict)
 		return
 	}
-	response, err := json.Marshal(struct {
-		Response string `json:"response"`
-	}{
-		Response: "user created successfully. please login to continue",
-	})
-	if err != nil {
-		log.Println("unable to marshal response")
-	}
-	rw.WriteHeader(http.StatusCreated)
-	rw.Write(response)
+	respondWithHTML(rw, "<p>User created successfully, please login to continue</p>", http.StatusCreated)
+	//respondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
 }
 
 func (resources *Resources) userLogin(rw http.ResponseWriter, req *http.Request) {
 	userLogin, err := FormUserToStruct(req)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		respondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
 	user, err := resources.DB.GetUserByName(ctx, userLogin.Name)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusNotFound)
+		respondWithError(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userLogin.Password))
 	if err != nil {
-		http.Error(rw, "invalid password", http.StatusUnauthorized)
+		respondWithError(rw, "invalid password", http.StatusUnauthorized)
 		return
 	}
 
 	token, expiryEpoch, err := generateToken(user.Name, 0, resources.Secret)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		respondWithError(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	//err = resources.DB.WriteRefreshToken(token, user.Token, expiryEpoch)
-	//if err != nil {
-	//   http.Error(rw, err.Error(), http.StatusInternalServerError)
-	//
+	sessionCookie := createSessionCookie(token, expiryEpoch)
+	http.SetCookie(rw, &sessionCookie)
 
-	rw.WriteHeader(http.StatusCreated)
-	refreshTokenCookie := createRefreshTokenCookie(token, expiryEpoch)
-	http.SetCookie(rw, &refreshTokenCookie)
-	http.Redirect(rw, req, "/homepage", 301)
+	session := db.CreateSessionParams{
+		ID:        token,
+		ExpiresAt: sessionCookie.Expires,
+		UserID:    user.ID,
+		AgentID:   uuid.NullUUID{},
+	}
+
+	err = resources.DB.CreateSession(ctx, session)
+
+	if err != nil {
+		respondWithError(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("HX-Redirect", "http://localhost:8080/home")
+	rw.WriteHeader(http.StatusOK)
 }
 
 func UserToStruct(req *http.Request) (db.User, error) {
@@ -103,11 +110,4 @@ func FormUserToStruct(req *http.Request) (db.User, error) {
 	newUser.Name = req.FormValue("username")
 	newUser.Password = req.FormValue("password")
 	return newUser, nil
-}
-func createRefreshTokenCookie(token string, expiryTime int64) http.Cookie {
-	cookie := http.Cookie{}
-	cookie.Name = "refreshToken"
-	cookie.Value = token
-	cookie.Expires = time.Unix(expiryTime, 0)
-	return cookie
 }
