@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -73,19 +71,12 @@ func teardownTestEnvironment() {
 
 func createTestUser(resources *Resources, name, password string) error {
 	baseURL := "http://localhost:8080"
-	userBody := struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
-	}{
-		Name:     name,
-		Password: password,
-	}
-	payload, err := json.Marshal(userBody)
-	if err != nil {
-		return err
-	}
-
-	req := httptest.NewRequest("POST", baseURL, bytes.NewBuffer(payload))
+	data := url.Values{}
+	data.Set("username", name)
+	data.Set("password", password)
+	
+	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
 	resources.createUser(res, req)
 
@@ -99,14 +90,15 @@ func createTestUser(resources *Resources, name, password string) error {
 func testUserLogin(resources *Resources, name, password string) (*http.Cookie, error) {
 	baseURL := "http://localhost:8080"
 	data := url.Values{}
-	data.Set("name", name)
+	data.Set("username", name)
 	data.Set("password", password)
 
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
 	resources.userLogin(res, req)
 
-	expected := http.StatusCreated
+	expected := http.StatusOK
 	got := res.Result().StatusCode
 
 	if got != expected {
