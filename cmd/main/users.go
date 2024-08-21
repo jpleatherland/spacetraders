@@ -5,26 +5,28 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"golang.org/x/crypto/bcrypt"
+	
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/db"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/jpleatherland/spacetraders/internal/response"
 )
 
 func (resources *Resources) createUser(rw http.ResponseWriter, req *http.Request) {
 	newUser, err := FormUserToStruct(req)
 	if err != nil {
-		respondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if newUser.Name == "" || newUser.Password == "" {
-		respondWithHTMLError(rw, "Please enter username and password", http.StatusBadRequest)
+		response.RespondWithHTMLError(rw, "Please enter username and password", http.StatusBadRequest)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 4)
 	if err != nil {
-		respondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -37,36 +39,36 @@ func (resources *Resources) createUser(rw http.ResponseWriter, req *http.Request
 
 	_, err = resources.DB.CreateUser(ctx, dbUser)
 	if err != nil {
-		respondWithHTMLError(rw, err.Error(), http.StatusConflict)
+		response.RespondWithHTMLError(rw, err.Error(), http.StatusConflict)
 		return
 	}
-	respondWithHTML(rw, "<p>User created successfully, please login to continue</p>", http.StatusCreated)
-	//respondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
+	response.RespondWithHTML(rw, "<p>User created successfully, please login to continue</p>", http.StatusCreated)
+	//response.RespondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
 }
 
 func (resources *Resources) userLogin(rw http.ResponseWriter, req *http.Request) {
 	userLogin, err := FormUserToStruct(req)
 	if err != nil {
-		respondWithError(rw, err.Error(), http.StatusInternalServerError)
+		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
 	user, err := resources.DB.GetUserByName(ctx, userLogin.Name)
 	if err != nil {
-		respondWithError(rw, err.Error(), http.StatusNotFound)
+		response.RespondWithError(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userLogin.Password))
 	if err != nil {
-		respondWithError(rw, "invalid password", http.StatusUnauthorized)
+		response.RespondWithError(rw, "invalid password", http.StatusUnauthorized)
 		return
 	}
 
 	token, expiryEpoch, err := generateToken(user.Name, 0, resources.Secret)
 	if err != nil {
-		respondWithError(rw, err.Error(), http.StatusInternalServerError)
+		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -83,7 +85,7 @@ func (resources *Resources) userLogin(rw http.ResponseWriter, req *http.Request)
 	err = resources.DB.CreateSession(ctx, session)
 
 	if err != nil {
-		respondWithError(rw, err.Error(), http.StatusInternalServerError)
+		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

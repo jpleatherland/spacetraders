@@ -1,13 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
-	"database/sql"
+	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/jpleatherland/spacetraders/internal/cache"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/web"
 	_ "github.com/lib/pq"
 )
 
@@ -24,27 +27,28 @@ func main() {
 	}
 
 	dbQueries := db.New(database)
+	cache := cache.NewCache(5 * time.Minute)
 
 	resources := Resources{
 		DB:     dbQueries,
 		Secret: JWT,
+		Cache:  cache,
 	}
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /output.css", func(rw http.ResponseWriter, req *http.Request) {
 		http.ServeFile(rw, req, "./views/output.css")
-		})
+	})
 
 	mux.HandleFunc("POST /createUser", resources.createUser)
 	mux.HandleFunc("POST /userlogin", resources.userLogin)
-	mux.HandleFunc("GET /createForm", createForm)
-	mux.HandleFunc("GET /login", resources.loginPage)
-	mux.HandleFunc("GET /home", resources.sessionMiddleware(resources.homePage))
+	mux.HandleFunc("GET /login", web.LoginPage)
+	mux.HandleFunc("GET /home", resources.sessionMiddleware(web.HomePage))
 	mux.HandleFunc("GET /", resources.index)
 
 	server := &http.Server{
-		Addr: ":8080",
+		Addr:    ":8080",
 		Handler: mux,
 	}
 
@@ -56,4 +60,5 @@ func main() {
 type Resources struct {
 	DB     *db.Queries
 	Secret string
+	Cache  *cache.Cache
 }

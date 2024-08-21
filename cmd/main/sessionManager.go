@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/cache"
 )
 
 func createSessionCookie(token string, expiryTime int64) http.Cookie {
@@ -38,8 +39,8 @@ func (resources *Resources) sessionMiddleware(handler sessionHandler) http.Handl
 			return
 		}
 
-		handler(rw, req, session)
+		handler(rw, req, session, resources.Cache)
 	}
 }
 
-type sessionHandler func(rw http.ResponseWriter, req *http.Request, session db.Session)
+type sessionHandler func(rw http.ResponseWriter, req *http.Request, session db.Session, cache *cache.Cache)
