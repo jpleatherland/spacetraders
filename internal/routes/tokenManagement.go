@@ -1,8 +1,9 @@
-package main
+package routes
 
 import (
-	"time"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"time"
 )
 
 func generateToken(username string, tokenExpiryTime int32, jwtSecret string) (string, int64, error) {
@@ -26,4 +27,16 @@ func generateToken(username string, tokenExpiryTime int32, jwtSecret string) (st
 		return "", 0, err
 	}
 	return signedToken, expiryEpoch, nil
+}
+
+func createSessionCookie(token string, expiryTime int64) http.Cookie {
+	cookie := http.Cookie{
+		Name:     "spacetradersSession",
+		Value:    token,
+		Expires:  time.Unix(expiryTime, 0),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	return cookie
 }

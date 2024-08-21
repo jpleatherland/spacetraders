@@ -5,8 +5,8 @@ import (
 	"text/template"
 )
 
-func LoginPage(rw http.ResponseWriter, _ *http.Request) {
-	tmpl := template.Must(template.ParseFiles("views/login.html"))
+func LoginPage(rw http.ResponseWriter, req *http.Request) {
+	tmpl := template.Must(template.ParseFiles("views/templates/login.html"))
 
 	err := tmpl.Execute(rw, nil)
 	if err != nil {

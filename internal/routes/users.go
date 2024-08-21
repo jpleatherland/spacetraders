@@ -1,4 +1,4 @@
-package main
+package routes
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/response"
 )
 
-func (resources *Resources) createUser(rw http.ResponseWriter, req *http.Request) {
-	newUser, err := FormUserToStruct(req)
+func CreateUser(rw http.ResponseWriter, req *http.Request, resources *Resources) {
+	newUser, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -46,8 +46,8 @@ func (resources *Resources) createUser(rw http.ResponseWriter, req *http.Request
 	//response.RespondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
 }
 
-func (resources *Resources) userLogin(rw http.ResponseWriter, req *http.Request) {
-	userLogin, err := FormUserToStruct(req)
+func UserLogin(rw http.ResponseWriter, req *http.Request, resources *Resources) {
+	userLogin, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -93,7 +93,7 @@ func (resources *Resources) userLogin(rw http.ResponseWriter, req *http.Request)
 	rw.WriteHeader(http.StatusOK)
 }
 
-func UserToStruct(req *http.Request) (db.User, error) {
+func userToStruct(req *http.Request) (db.User, error) {
 	var newUser db.User
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&newUser)
@@ -103,7 +103,7 @@ func UserToStruct(req *http.Request) (db.User, error) {
 	return newUser, nil
 }
 
-func FormUserToStruct(req *http.Request) (db.User, error) {
+func formUserToStruct(req *http.Request) (db.User, error) {
 	var newUser db.User
 	err := req.ParseForm()
 	if err != nil {

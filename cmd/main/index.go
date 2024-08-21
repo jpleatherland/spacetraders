@@ -1,24 +1,26 @@
 package main
 
 import (
+	"log"
 	"net/http"
 )
 
-func (resources *Resources) index(rw http.ResponseWriter, req *http.Request) {
-	isLoggedIn := resources.checkIfUserLoggedIn(req)
+func index(rw http.ResponseWriter, req *http.Request) {
+	log.Println("I'm in index")
+	isLoggedIn := checkIfUserLoggedIn(req)
 
 	if isLoggedIn {
-		http.Redirect(rw, req, "/homepage", 301)
+		http.Redirect(rw, req, "/home", 301)
 	} else {
 		http.Redirect(rw, req, "/login", 301)
 	}
 }
 
-func (resources *Resources) checkIfUserLoggedIn(req *http.Request) bool {
+func checkIfUserLoggedIn(req *http.Request) bool {
 	refreshToken := ""
 
 	for _, cookie := range req.Cookies() {
-		if cookie.Name == "refreshToken" {
+		if cookie.Name == "spacetradersSession" {
 			refreshToken = cookie.Value
 		}
 	}
@@ -27,8 +29,5 @@ func (resources *Resources) checkIfUserLoggedIn(req *http.Request) bool {
 		return false
 	}
 
-	//_, err := resources.DB.ReadRefreshToken(refreshToken)
-
-	return false
-
+	return true
 }

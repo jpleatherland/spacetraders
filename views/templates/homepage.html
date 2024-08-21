@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spacetraders Home</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/htmx.org@2.0.1"
+    integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="../css/output.css">
+</head>
+
+<body>
+  <header>
+    <container>
+    </container>
+  </header>
+  <main>
+    <h1 class="text-4xl">Dashboard</h1>
+    <code>
+      {{.Server.RequestStatus}}<br />
+      {{.Server.Status}}<br />
+    </code>
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-8">
+      {{ template "section_leaderboards" .Server.Leaderboards }}
+    </div>
+    <div class="grid grid-cols-3 h-32 rounded-lg bg-gray-200 lg:col-span-2">
+      <h2>Agents321</h2>
+      {{ template "section_agents" .Agents }}
+    </div>
+    <div class="grid grid-cols-1 h-32 rounded-lg bg-gray-200"></div>
+  </main>
+  <footer>
+    <!-- Site footer content goes here -->
+  </footer>
+  <script src="index.js"></script>
+</body>
+
+</html>

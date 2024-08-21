@@ -1,0 +1,37 @@
+{{ define "section_leaderboards" }}
+<div class="h-32 rounded-lg bg-gray-200">
+  <h2 class="text-2xl"> Leaderboards </h2>
+  <div class="overflow-x-auto">
+    <h3 class="text-1xl"> Most Credits </h3>
+    <table class="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+      <thead class="ltr:text-left rtl:text-right">
+        <tr>
+          <th class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Agent Symbol</th>
+          <th class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Credits</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {{range .MostCredits}}<tr class="odd:bg-gray-50">
+          <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{.AgentSymbol}}</td>
+          <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{.Credits}}</td>
+        </tr>{{end}}
+      </tbody>
+    </table>
+    <h3 class="text-1xl"> Most Submitted Charts </h3>
+    <table class="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+      <thead class="ltr:text-left rtl:text-right">
+        <tr>
+          <th class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Agent Symbol</th>
+          <th class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Chart Count</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {{range .MostSubmittedCharts}}<tr class="odd:bg-gray-50">
+          <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{.AgentSymbol}}</td>
+          <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{.ChartCount}}</td>
+        </tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ end }}

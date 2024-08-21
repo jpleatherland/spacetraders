@@ -1,4 +1,4 @@
-package main
+package routes
 
 import (
 	"context"
@@ -78,7 +78,7 @@ func createTestUser(resources *Resources, name, password string) error {
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
-	resources.createUser(res, req)
+	CreateUser(res, req, resources)
 
 	if res.Result().StatusCode != http.StatusCreated {
 		errorMsg := fmt.Sprintf("create user response status incorrect, expected: %v got: %v", http.StatusCreated, res.Result().Status)
@@ -96,7 +96,7 @@ func testUserLogin(resources *Resources, name, password string) (*http.Cookie, e
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
-	resources.userLogin(res, req)
+	UserLogin(res, req, resources)
 
 	expected := http.StatusOK
 	got := res.Result().StatusCode

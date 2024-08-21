@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/jpleatherland/spacetraders/internal/cache"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/routes"
 	"github.com/jpleatherland/spacetraders/internal/web"
 	_ "github.com/lib/pq"
 )
@@ -29,7 +30,7 @@ func main() {
 	dbQueries := db.New(database)
 	cache := cache.NewCache(5 * time.Minute)
 
-	resources := Resources{
+	resources := routes.Resources{
 		DB:     dbQueries,
 		Secret: JWT,
 		Cache:  cache,
@@ -37,15 +38,15 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /output.css", func(rw http.ResponseWriter, req *http.Request) {
-		http.ServeFile(rw, req, "./views/output.css")
+	mux.HandleFunc("GET /css/output.css", func(rw http.ResponseWriter, req *http.Request) {
+		http.ServeFile(rw, req, "./views/css/output.css")
 	})
 
-	mux.HandleFunc("POST /createUser", resources.createUser)
-	mux.HandleFunc("POST /userlogin", resources.userLogin)
-	mux.HandleFunc("GET /login", web.LoginPage)
-	mux.HandleFunc("GET /home", resources.sessionMiddleware(web.HomePage))
-	mux.HandleFunc("GET /", resources.index)
+	mux.HandleFunc("POST /createUser", resourcesMiddleware(routes.CreateUser, &resources))
+	mux.HandleFunc("POST /userlogin", resourcesMiddleware(routes.UserLogin, &resources))
+	mux.HandleFunc("GET /home", sessionMiddleware(web.HomePage, &resources))
+	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
+	mux.HandleFunc("GET /", index)
 
 	server := &http.Server{
 		Addr:    ":8080",
@@ -55,10 +56,4 @@ func main() {
 	log.Printf("Listening on %v", server.Addr)
 
 	log.Fatal(server.ListenAndServe())
-}
-
-type Resources struct {
-	DB     *db.Queries
-	Secret string
-	Cache  *cache.Cache
 }
