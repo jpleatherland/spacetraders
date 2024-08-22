@@ -3870,7 +3870,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	m.HandleFunc("GET "+options.BaseURL+"/", wrapper.GetStatus)
+	m.HandleFunc("GET "+options.BaseURL+"/status", wrapper.GetStatus)
 	m.HandleFunc("GET "+options.BaseURL+"/agents", wrapper.GetAgents)
 	m.HandleFunc("GET "+options.BaseURL+"/agents/{agentSymbol}", wrapper.GetAgent)
 	m.HandleFunc("GET "+options.BaseURL+"/factions", wrapper.GetFactions)

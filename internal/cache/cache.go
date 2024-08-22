@@ -14,11 +14,11 @@ type Cache struct {
 
 type cacheEntry struct {
 	createdAt time.Time
-	content   []byte
+	content   interface{}
 	ttl       time.Duration
 }
 
-func (c *Cache) Add(key string, val []byte, ttl time.Duration) {
+func (c *Cache) Add(key string, val interface{}, ttl time.Duration) {
 	log.Println("adding to cache")
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -27,12 +27,12 @@ func (c *Cache) Add(key string, val []byte, ttl time.Duration) {
 	}
 	c.cacheEntries[key] = cacheEntry{
 		createdAt: time.Now(),
-		ttl: ttl,
+		ttl:       ttl,
 		content:   val,
 	}
 }
 
-func (c *Cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) (interface{}, bool) {
 	log.Println("retrieving from cache")
 	c.mu.RLock()
 	defer c.mu.RUnlock()

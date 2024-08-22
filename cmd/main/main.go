@@ -8,12 +8,15 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/jpleatherland/spacetraders/internal/api"
 	"github.com/jpleatherland/spacetraders/internal/cache"
 	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/routes"
 	"github.com/jpleatherland/spacetraders/internal/web"
 	_ "github.com/lib/pq"
 )
+
+const BASEURL = "api.spacetraders.io/v2"
 
 func main() {
 	err := godotenv.Load()
@@ -36,8 +39,9 @@ func main() {
 		Cache:  cache,
 	}
 
-	mux := http.NewServeMux()
+	s := api.NewServer()
 
+	mux := http.NewServeMux()
 	mux.HandleFunc("GET /css/output.css", func(rw http.ResponseWriter, req *http.Request) {
 		http.ServeFile(rw, req, "./views/css/output.css")
 	})
@@ -48,9 +52,13 @@ func main() {
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
 	mux.HandleFunc("GET /", index)
 
+	stMux := api.HandlerFromMux(s, mux)
+
+	resources.Server = s
+
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: stMux,
 	}
 
 	log.Printf("Listening on %v", server.Addr)
