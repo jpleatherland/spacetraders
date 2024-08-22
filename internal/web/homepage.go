@@ -28,6 +28,8 @@ func HomePage(rw http.ResponseWriter, req *http.Request, session db.Session, res
 		Agents: []db.GetAgentsByUserIdRow{},
 	}
 
+	session.UserID
+
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
 	if !exists {
@@ -47,6 +49,8 @@ func HomePage(rw http.ResponseWriter, req *http.Request, session db.Session, res
 	} else {
 		pageData.Server = result
 	}
+
+	//pageData.Agents = routes.GetAgents(resources, session.UserID)
 
 	err = tmpl.Execute(rw, pageData)
 	if err != nil {

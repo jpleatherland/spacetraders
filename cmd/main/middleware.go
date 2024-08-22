@@ -9,7 +9,9 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/routes"
 )
 
-func resourcesMiddleware(handler resourcesHandler, resources *routes.Resources) http.HandlerFunc {
+type contextKey string
+
+func internalResourcesMiddleware(handler resourcesHandler, resources *routes.Resources) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		handler(rw, req, resources)
 	}
@@ -50,3 +52,13 @@ func redirectLogin(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 type sessionHandler func(rw http.ResponseWriter, req *http.Request, session db.Session, resources *routes.Resources)
+
+func resourcesMiddleware(resources interface{}) func(http.Handler) http.Handler {
+	var resourceKey contextKey = "resources"
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithValue(r.Context(), resourceKey, resources)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}

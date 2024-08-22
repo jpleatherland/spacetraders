@@ -2,9 +2,16 @@ package routes
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
+	"sync"
+
+	"github.com/google/uuid"
+	"github.com/jpleatherland/spacetraders/internal/api"
+	"github.com/jpleatherland/spacetraders/internal/db"
 )
 
 func createAgent(username, faction string) (string, error) {
@@ -42,4 +49,34 @@ func createAgent(username, faction string) (string, error) {
 	}
 
 	return result["data"].(map[string]interface{})["token"].(string), nil
+}
+
+func GetAgents(resources *Resources, userId uuid.UUID) ([]db.GetAgentsByUserIdRow, error) {
+	ctx := context.Background()
+	agents := []db.GetAgentsByUserIdRow{}
+	agents, err := resources.DB.GetAgentsByUserId(ctx, userId)
+	if err != nil {
+		return agents, err
+	}
+
+	if len(agents == 0) {
+		return agents, nil
+	}
+
+	wg := sync.WaitGroup{}
+	results := make(chan api.Agent)
+	wg.Add(len(agents))
+
+	for i := range agents {
+		go func() {
+			defer wg.Done()
+			result, err := resources.Server.GetAgentHandler(agents[i].ID)
+			if err != nil {
+				log.Printf("failed to get agent")
+			}
+			results <- result
+		}()
+	}
+	// this agents need to be augmented
+	return agents, nil
 }

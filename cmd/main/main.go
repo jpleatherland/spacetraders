@@ -16,8 +16,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const BASEURL = "api.spacetraders.io/v2"
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -46,13 +44,17 @@ func main() {
 		http.ServeFile(rw, req, "./views/css/output.css")
 	})
 
-	mux.HandleFunc("POST /createUser", resourcesMiddleware(routes.CreateUser, &resources))
-	mux.HandleFunc("POST /userlogin", resourcesMiddleware(routes.UserLogin, &resources))
+	mux.HandleFunc("POST /createUser", internalResourcesMiddleware(routes.CreateUser, &resources))
+	mux.HandleFunc("POST /userlogin", internalResourcesMiddleware(routes.UserLogin, &resources))
 	mux.HandleFunc("GET /home", sessionMiddleware(web.HomePage, &resources))
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
 	mux.HandleFunc("GET /", index)
 
-	stMux := api.HandlerFromMux(s, mux)
+	resourcesHandler := resourcesMiddleware(&resources)
+	stMux := api.HandlerWithOptions(s, api.StdHTTPServerOptions{
+		BaseRouter:  mux,
+		Middlewares: []api.MiddlewareFunc{resourcesHandler},
+	})
 
 	resources.Server = s
 

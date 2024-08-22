@@ -1,8 +1,12 @@
 {{ define "section_agents" }}
-  <h3> Agents Section </h3>
-  <ul>
-    {{range .Agents}}
-    <li>{{ .Name }}</li>
-    {{end}}
-  </ul>
-{{end}}
+<h3>Agents Section</h3>
+{{ if .Agents }}
+<ul>
+  {{ range .Agents }}
+  <li>{{ .Name }}</li>
+  {{ end }}
+</ul>
+{{ else }}
+<p>No registered agents found</p>
+{{ end }}
+{{ end }}

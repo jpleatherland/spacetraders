@@ -10,9 +10,9 @@ func index(rw http.ResponseWriter, req *http.Request) {
 	isLoggedIn := checkIfUserLoggedIn(req)
 
 	if isLoggedIn {
-		http.Redirect(rw, req, "/home", 301)
+		http.Redirect(rw, req, "/home", http.StatusFound)
 	} else {
-		http.Redirect(rw, req, "/login", 301)
+		http.Redirect(rw, req, "/login", http.StatusFound)
 	}
 }
 
@@ -25,9 +25,5 @@ func checkIfUserLoggedIn(req *http.Request) bool {
 		}
 	}
 
-	if refreshToken == "" {
-		return false
-	}
-
-	return true
+	return refreshToken != ""
 }
