@@ -10,11 +10,8 @@ func NewServer() Server {
 	return Server{}
 }
 
-func (s Server) GetAgents(w http.ResponseWriter, r *http.Request, params GetAgentsParams)       {}
-func (s Server) GetAgent(w http.ResponseWriter, r *http.Request, agentSymbol string)            {}
 func (s Server) GetFactions(w http.ResponseWriter, r *http.Request, params GetFactionsParams)   {}
 func (s Server) GetFaction(w http.ResponseWriter, r *http.Request, factionSymbol string)        {}
-func (s Server) GetMyAgent(w http.ResponseWriter, r *http.Request)                              {}
 func (s Server) GetContracts(w http.ResponseWriter, r *http.Request, params GetContractsParams) {}
 func (s Server) GetContract(w http.ResponseWriter, r *http.Request, contractId string)          {}
 func (s Server) AcceptContract(w http.ResponseWriter, r *http.Request, contractId string)       {}

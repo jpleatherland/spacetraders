@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/api"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/resources"
 )
 
 func createAgent(username, faction string) (string, error) {
@@ -51,15 +52,15 @@ func createAgent(username, faction string) (string, error) {
 	return result["data"].(map[string]interface{})["token"].(string), nil
 }
 
-func GetAgents(resources *Resources, userId uuid.UUID) ([]db.GetAgentsByUserIdRow, error) {
+func GetAgents(database *db.Queries, server api.Server, userId uuid.UUID) ([]db.GetAgentsByUserIdRow, error) {
 	ctx := context.Background()
 	agents := []db.GetAgentsByUserIdRow{}
-	agents, err := resources.DB.GetAgentsByUserId(ctx, userId)
+	agents, err := database.GetAgentsByUserId(ctx, userId)
 	if err != nil {
 		return agents, err
 	}
 
-	if len(agents == 0) {
+	if len(agents) == 0 {
 		return agents, nil
 	}
 
@@ -70,7 +71,7 @@ func GetAgents(resources *Resources, userId uuid.UUID) ([]db.GetAgentsByUserIdRo
 	for i := range agents {
 		go func() {
 			defer wg.Done()
-			result, err := resources.Server.GetAgentHandler(agents[i].ID)
+			result, err := server.GetAgentHandler(database, agents[i].ID)
 			if err != nil {
 				log.Printf("failed to get agent")
 			}
@@ -78,5 +79,7 @@ func GetAgents(resources *Resources, userId uuid.UUID) ([]db.GetAgentsByUserIdRo
 		}()
 	}
 	// this agents need to be augmented
+	// by ranging over results 
+	// which is a call to st api getting agent details
 	return agents, nil
 }

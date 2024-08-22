@@ -31,7 +31,7 @@ func main() {
 	dbQueries := db.New(database)
 	cache := cache.NewCache(5 * time.Minute)
 
-	resources := routes.Resources{
+	resources := Resources{
 		DB:     dbQueries,
 		Secret: JWT,
 		Cache:  cache,

@@ -12,7 +12,7 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/response"
 )
 
-func CreateUser(rw http.ResponseWriter, req *http.Request, resources *Resources) {
+func CreateUser(rw http.ResponseWriter, req *http.Request, database *db.Queries) {
 	newUser, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func CreateUser(rw http.ResponseWriter, req *http.Request, resources *Resources)
 	}
 	ctx := context.Background()
 
-	_, err = resources.DB.CreateUser(ctx, dbUser)
+	_, err = database.CreateUser(ctx, dbUser)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusConflict)
 		return
@@ -46,7 +46,7 @@ func CreateUser(rw http.ResponseWriter, req *http.Request, resources *Resources)
 	//response.RespondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
 }
 
-func UserLogin(rw http.ResponseWriter, req *http.Request, resources *Resources) {
+func UserLogin(rw http.ResponseWriter, req *http.Request, database *db.Queries, secret string) {
 	userLogin, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, resources *Resources) 
 	}
 
 	ctx := context.Background()
-	user, err := resources.DB.GetUserByName(ctx, userLogin.Name)
+	user, err := database.GetUserByName(ctx, userLogin.Name)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusNotFound)
 		return
@@ -66,7 +66,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, resources *Resources) 
 		return
 	}
 
-	token, expiryEpoch, err := generateToken(user.Name, 0, resources.Secret)
+	token, expiryEpoch, err := generateToken(user.Name, 0, secret)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -82,7 +82,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, resources *Resources) 
 		AgentID:   uuid.NullUUID{},
 	}
 
-	err = resources.DB.CreateSession(ctx, session)
+	err = database.CreateSession(ctx, session)
 
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)

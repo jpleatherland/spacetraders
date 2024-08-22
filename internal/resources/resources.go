@@ -1,4 +1,4 @@
-package routes
+package resources
 
 import (
 	"github.com/jpleatherland/spacetraders/internal/api"
