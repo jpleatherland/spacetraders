@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/jpleatherland/spacetraders/internal/routes"
@@ -11,6 +12,7 @@ import (
 // (GET /agents)
 func (s Server) GetAgents(w http.ResponseWriter, r *http.Request, params spec.GetAgentsParams) {
 	routes.GetAgentTest()
+	log.Println("in get agents")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("hi"))
 }

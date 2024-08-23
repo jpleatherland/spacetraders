@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
 	"github.com/jpleatherland/spacetraders/internal/routes"
@@ -15,7 +14,7 @@ import (
 
 type HomePageData struct {
 	Server spec.ServerStatus
-	Agents []db.GetAgentsByUserIdRow
+	Agents []spec.Agent
 }
 
 func HomePage(rw http.ResponseWriter, req *http.Request) {
@@ -25,7 +24,7 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)
 	}
 
-	_, ok = middleware.GetSession(req.Context())
+	session, ok := middleware.GetSession(req.Context())
 	if !ok {
 		http.Redirect(rw, req, "/login", http.StatusFound)
 		return
@@ -38,7 +37,7 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 
 	pageData := HomePageData{
 		Server: spec.ServerStatus{},
-		Agents: []db.GetAgentsByUserIdRow{},
+		Agents: []spec.Agent{},
 	}
 
 	statusResp, exists := resources.Cache.Get("serverStatus")
@@ -61,7 +60,10 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 		pageData.Server = result
 	}
 
-	//pageData.Agents = routes.GetAgents(resources, session.UserID)
+	pageData.Agents, err = routes.GetAgents(resources, session.UserID)
+	if err != nil {
+		log.Println(err.Error())
+	}
 
 	err = tmpl.Execute(rw, pageData)
 	if err != nil {

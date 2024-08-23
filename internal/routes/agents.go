@@ -9,14 +9,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
-func createAgent(username, faction string) (string, error) {
-	createAgentUrl := "https://api.spacetraders.io/v2/register"
+func CreateAgent(username, faction string) (string, error) {
+	createAgentUrl := "/register"
 
 	requestBody := struct {
 		Symbol  string `json:"symbol"`
@@ -52,42 +54,44 @@ func createAgent(username, faction string) (string, error) {
 	return result["data"].(map[string]interface{})["token"].(string), nil
 }
 
-func GetAgents(database *db.Queries, userId uuid.UUID) ([]db.GetAgentsByUserIdRow, error) {
+func GetAgents(resources *middleware.Resources, userId uuid.UUID) ([]spec.Agent, error) {
 	ctx := context.Background()
-	agents := []db.GetAgentsByUserIdRow{}
-	agents, err := database.GetAgentsByUserId(ctx, userId)
+	agents := []spec.Agent{}
+	agentIds, err := resources.DB.GetAgentsByUserId(ctx, userId)
 	if err != nil {
 		return agents, err
 	}
 
 	if len(agents) == 0 {
-		return agents, nil
+		return agents, errors.New("no agents found")
 	}
 
-	// wg := sync.WaitGroup{}
-	// results := make(chan api.Agent)
-	// wg.Add(len(agents))
+	wg := sync.WaitGroup{}
+	results := make(chan spec.Agent)
+	wg.Add(len(agents))
 
-	// for i := range agents {
-	// 	go func() {
-	// 		defer wg.Done()
-	// 		// result, err := server.GetAgentHandler(database, agents[i].ID)
-	// 		// if err != nil {
-	// 			// log.Printf("failed to get agent")
-	// 		// }
-	// 		results <- result
-	// 	}()
-	// }
-	// this agents need to be augmented
-	// by ranging over results
-	// which is a call to st api getting agent details
+	for i := range agentIds {
+		go func() {
+			defer wg.Done()
+			agent, err := GetAgentHandler(agentIds[i].ID)
+			if err != nil {
+				log.Printf("Get agent failed for %v: %v", agentIds[i].ID.String(), err.Error())
+			}
+			results <- agent
+		}()
+	}
+	for agent := range results {
+		agents = append(agents, agent)
+		writeAgentToCache(resources, agent)
+	}
 	return agents, nil
 }
 
-func GetAgentHandler(database *db.Queries, agentId uuid.UUID) (spec.Agent, error) {
+func GetAgentHandler(agentId uuid.UUID) (spec.Agent, error) {
 	agent := spec.Agent{}
+	myAgentUrl := "/my/agent"
 
-	req, err := http.NewRequest("GET", baseUrl+"/my/agent", nil)
+	req, err := http.NewRequest("GET", baseUrl+myAgentUrl, nil)
 	if err != nil {
 		return agent, err
 	}
@@ -115,4 +119,12 @@ func GetAgentHandler(database *db.Queries, agentId uuid.UUID) (spec.Agent, error
 
 func GetAgentTest() {
 	log.Println("in routes")
+}
+
+func writeAgentToCache(resources *middleware.Resources, agent spec.Agent) {
+	resources.Cache.Add(
+		*agent.AccountId,
+		agent,
+		time.Duration(5*time.Minute),
+	)
 }

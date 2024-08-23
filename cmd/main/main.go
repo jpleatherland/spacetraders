@@ -46,6 +46,9 @@ func main() {
 	mux.HandleFunc("GET /css/output.css", func(rw http.ResponseWriter, req *http.Request) {
 		http.ServeFile(rw, req, "./views/css/output.css")
 	})
+	mux.HandleFunc("GET /favicon.ico", func(rw http.ResponseWriter, req *http.Request) {
+		http.ServeFile(rw, req, "./views/rocket-16.ico")
+	})
 
 	homeHandler := middleware.InjectResources(&resources)(
 		middleware.SessionMiddleware(
@@ -63,8 +66,6 @@ func main() {
 		BaseRouter:  mux,
 		Middlewares: []spec.MiddlewareFunc{},
 	})
-
-	// handler := middleware.SessionMiddleware(middleware.InjectResources(&resources)(stMux))
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "login") || r.URL.Path == "/createUser" {
