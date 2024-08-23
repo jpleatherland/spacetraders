@@ -34,6 +34,6 @@ func RespondWithHTML(rw http.ResponseWriter, html string, code int) {
 }
 
 func RespondWithHTMLError(rw http.ResponseWriter, error string, code int) {
-	errMsg := "<p>"+error+"</p>"
+	errMsg := "<p>" + error + "</p>"
 	RespondWithHTML(rw, errMsg, code)
 }

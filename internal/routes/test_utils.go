@@ -13,10 +13,10 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
-	"github.com/pressly/goose"
 	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose"
 )
 
 func setupTestEnvironment() (*sql.DB, string, error) {
@@ -75,9 +75,9 @@ func createTestUser(resources *middleware.Resources, name, password string) erro
 	data := url.Values{}
 	data.Set("username", name)
 	data.Set("password", password)
-	
+
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
-	ctx := context.WithValue(req.Context(), "resources", resources)
+	ctx := context.WithValue(req.Context(), middleware.ResourcesKey, resources)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
 	CreateUser(res, req.WithContext(ctx))
@@ -96,9 +96,10 @@ func testUserLogin(resources *middleware.Resources, name, password string) (*htt
 	data.Set("password", password)
 
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
+	ctx := context.WithValue(req.Context(), middleware.ResourcesKey, resources)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
-	UserLogin(res, req)
+	UserLogin(res, req.WithContext(ctx))
 
 	expected := http.StatusOK
 	got := res.Result().StatusCode
@@ -114,12 +115,11 @@ func testUserLogin(resources *middleware.Resources, name, password string) (*htt
 		}
 	}
 
-	return nil, errors.New("Session cookie not found")
+	return nil, errors.New("session cookie not found")
 }
 
 func testGetSessionById(resources *middleware.Resources, cookie *http.Cookie) (db.Session, error) {
 	ctx := context.Background()
-	session := db.Session{}
 	session, err := resources.DB.GetSessionById(ctx, cookie.Value)
 	return session, err
 }

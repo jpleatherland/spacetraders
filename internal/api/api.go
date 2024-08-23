@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+
+	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
 type Server struct{}
@@ -10,21 +12,22 @@ func NewServer() Server {
 	return Server{}
 }
 
-func (s Server) GetFactions(w http.ResponseWriter, r *http.Request, params GetFactionsParams)   {}
-func (s Server) GetFaction(w http.ResponseWriter, r *http.Request, factionSymbol string)        {}
-func (s Server) GetContracts(w http.ResponseWriter, r *http.Request, params GetContractsParams) {}
-func (s Server) GetContract(w http.ResponseWriter, r *http.Request, contractId string)          {}
-func (s Server) AcceptContract(w http.ResponseWriter, r *http.Request, contractId string)       {}
-func (s Server) DeliverContract(w http.ResponseWriter, r *http.Request, contractId string)      {}
-func (s Server) FulfillContract(w http.ResponseWriter, r *http.Request, contractId string)      {}
-func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params GetMyShipsParams)     {}
-func (s Server) PurchaseShip(w http.ResponseWriter, r *http.Request)                            {}
-func (s Server) GetMyShip(w http.ResponseWriter, r *http.Request, shipSymbol string)            {}
-func (s Server) GetMyShipCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)       {}
-func (s Server) CreateChart(w http.ResponseWriter, r *http.Request, shipSymbol string)          {}
-func (s Server) GetShipCooldown(w http.ResponseWriter, r *http.Request, shipSymbol string)      {}
-func (s Server) DockShip(w http.ResponseWriter, r *http.Request, shipSymbol string)             {}
-func (s Server) ExtractResources(w http.ResponseWriter, r *http.Request, shipSymbol string)     {}
+func (s Server) GetFactions(w http.ResponseWriter, r *http.Request, params spec.GetFactionsParams) {}
+func (s Server) GetFaction(w http.ResponseWriter, r *http.Request, factionSymbol string)           {}
+func (s Server) GetContracts(w http.ResponseWriter, r *http.Request, params spec.GetContractsParams) {
+}
+func (s Server) GetContract(w http.ResponseWriter, r *http.Request, contractId string)           {}
+func (s Server) AcceptContract(w http.ResponseWriter, r *http.Request, contractId string)        {}
+func (s Server) DeliverContract(w http.ResponseWriter, r *http.Request, contractId string)       {}
+func (s Server) FulfillContract(w http.ResponseWriter, r *http.Request, contractId string)       {}
+func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.GetMyShipsParams) {}
+func (s Server) PurchaseShip(w http.ResponseWriter, r *http.Request)                             {}
+func (s Server) GetMyShip(w http.ResponseWriter, r *http.Request, shipSymbol string)             {}
+func (s Server) GetMyShipCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)        {}
+func (s Server) CreateChart(w http.ResponseWriter, r *http.Request, shipSymbol string)           {}
+func (s Server) GetShipCooldown(w http.ResponseWriter, r *http.Request, shipSymbol string)       {}
+func (s Server) DockShip(w http.ResponseWriter, r *http.Request, shipSymbol string)              {}
+func (s Server) ExtractResources(w http.ResponseWriter, r *http.Request, shipSymbol string)      {}
 func (s Server) ExtractResourcesWithSurvey(w http.ResponseWriter, r *http.Request, shipSymbol string) {
 }
 func (s Server) Jettison(w http.ResponseWriter, r *http.Request, shipSymbol string)               {}
@@ -53,9 +56,9 @@ func (s Server) CreateSurvey(w http.ResponseWriter, r *http.Request, shipSymbol 
 func (s Server) TransferCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)          {}
 func (s Server) WarpShip(w http.ResponseWriter, r *http.Request, shipSymbol string)               {}
 func (s Server) Register(w http.ResponseWriter, r *http.Request)                                  {}
-func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params GetSystemsParams)       {}
+func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.GetSystemsParams)  {}
 func (s Server) GetSystem(w http.ResponseWriter, r *http.Request, systemSymbol string)            {}
-func (s Server) GetSystemWaypoints(w http.ResponseWriter, r *http.Request, systemSymbol string, params GetSystemWaypointsParams) {
+func (s Server) GetSystemWaypoints(w http.ResponseWriter, r *http.Request, systemSymbol string, params spec.GetSystemWaypointsParams) {
 }
 func (s Server) GetWaypoint(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {
 }

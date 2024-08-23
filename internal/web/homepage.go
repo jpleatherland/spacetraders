@@ -6,32 +6,45 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/jpleatherland/spacetraders/internal/api"
 	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
 	"github.com/jpleatherland/spacetraders/internal/routes"
+	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
 type HomePageData struct {
-	Server api.ServerStatus
+	Server spec.ServerStatus
 	Agents []db.GetAgentsByUserIdRow
 }
 
-func HomePage(rw http.ResponseWriter, req *http.Request, session db.Session, resources *routes.Resources) {
+func HomePage(rw http.ResponseWriter, req *http.Request) {
+	log.Println("in homepage")
+	resources, ok := middleware.GetResources(req.Context())
+	if !ok {
+		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)
+	}
+
+	_, ok = middleware.GetSession(req.Context())
+	if !ok {
+		http.Redirect(rw, req, "/login", http.StatusFound)
+		return
+	}
+
 	tmpl, err := template.Must(template.ParseGlob(filepath.Join("views", "templates", "homepage.html"))).ParseGlob(filepath.Join("views", "templates", "partials", "*.html"))
 	if err != nil {
 		response.RespondWithError(rw, "Unable to load templates", http.StatusInternalServerError)
 	}
 
 	pageData := HomePageData{
-		Server: api.ServerStatus{},
+		Server: spec.ServerStatus{},
 		Agents: []db.GetAgentsByUserIdRow{},
 	}
 
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
 	if !exists {
-		statusResp, err = resources.Server.GetStatusHandler(rw, req)
+		statusResp, err = routes.GetStatusHandler()
 		if err != nil {
 			pageData.Server.RequestStatus = err.Error()
 			response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
@@ -41,7 +54,7 @@ func HomePage(rw http.ResponseWriter, req *http.Request, session db.Session, res
 		resources.Cache.Add("serverStatus", statusResp, 0)
 	}
 
-	result, ok := statusResp.(api.ServerStatus)
+	result, ok := statusResp.(spec.ServerStatus)
 	if !ok {
 		log.Print("cached status is not of type ServerStatus")
 	} else {

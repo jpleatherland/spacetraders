@@ -1,9 +1,4 @@
-package api
-
-type contextKey string
-
-const BASEURL = "https://api.spacetraders.io/v2"
-const resourceKey contextKey = "resources"
+package spec
 
 type ServerStatus struct {
 	ServerResets struct {
