@@ -13,7 +13,6 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/routes"
 	"github.com/jpleatherland/spacetraders/internal/web"
-	"github.com/jpleatherland/spacetraders/internal/resources"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	_ "github.com/lib/pq"
 )
@@ -33,7 +32,7 @@ func main() {
 	dbQueries := db.New(database)
 	cache := cache.NewCache(5 * time.Minute)
 
-	resources := resources.Resources{
+	resources := middleware.Resources{
 		DB:     dbQueries,
 		Secret: JWT,
 		Cache:  cache,
