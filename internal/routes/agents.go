@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/api"
 	"github.com/jpleatherland/spacetraders/internal/db"
-	"github.com/jpleatherland/spacetraders/internal/resources"
 )
 
 func createAgent(username, faction string) (string, error) {

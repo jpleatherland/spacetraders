@@ -10,9 +10,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/response"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 )
 
-func CreateUser(rw http.ResponseWriter, req *http.Request, database *db.Queries) {
+func CreateUser(rw http.ResponseWriter, req *http.Request) {
+	resources, ok := middleware.GetResources(req.Context())
+	if !ok {
+		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)
+	}
 	newUser, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
@@ -37,16 +42,19 @@ func CreateUser(rw http.ResponseWriter, req *http.Request, database *db.Queries)
 	}
 	ctx := context.Background()
 
-	_, err = database.CreateUser(ctx, dbUser)
+	_, err = resources.DB.CreateUser(ctx, dbUser)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusConflict)
 		return
 	}
 	response.RespondWithHTML(rw, "<p>User created successfully, please login to continue</p>", http.StatusCreated)
-	//response.RespondWithJSON(rw, http.StatusCreated, map[string]string{"Response": "user created successfully, please login to continue"})
 }
 
-func UserLogin(rw http.ResponseWriter, req *http.Request, database *db.Queries, secret string) {
+func UserLogin(rw http.ResponseWriter, req *http.Request) {
+	resources, ok := middleware.GetResources(req.Context())
+	if !ok {
+		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)
+	}
 	userLogin, err := formUserToStruct(req)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
@@ -54,7 +62,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, database *db.Queries, 
 	}
 
 	ctx := context.Background()
-	user, err := database.GetUserByName(ctx, userLogin.Name)
+	user, err := resources.DB.GetUserByName(ctx, userLogin.Name)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusNotFound)
 		return
@@ -66,7 +74,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, database *db.Queries, 
 		return
 	}
 
-	token, expiryEpoch, err := generateToken(user.Name, 0, secret)
+	token, expiryEpoch, err := generateToken(user.Name, 0, resources.Secret)
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -82,7 +90,7 @@ func UserLogin(rw http.ResponseWriter, req *http.Request, database *db.Queries, 
 		AgentID:   uuid.NullUUID{},
 	}
 
-	err = database.CreateSession(ctx, session)
+	err = resources.DB.CreateSession(ctx, session)
 
 	if err != nil {
 		response.RespondWithError(rw, err.Error(), http.StatusInternalServerError)

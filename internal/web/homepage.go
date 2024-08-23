@@ -28,8 +28,6 @@ func HomePage(rw http.ResponseWriter, req *http.Request, session db.Session, res
 		Agents: []db.GetAgentsByUserIdRow{},
 	}
 
-	session.UserID
-
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
 	if !exists {

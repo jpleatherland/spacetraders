@@ -13,6 +13,8 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/routes"
 	"github.com/jpleatherland/spacetraders/internal/web"
+	"github.com/jpleatherland/spacetraders/internal/resources"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -31,11 +33,12 @@ func main() {
 	dbQueries := db.New(database)
 	cache := cache.NewCache(5 * time.Minute)
 
-	resources := Resources{
+	resources := resources.Resources{
 		DB:     dbQueries,
 		Secret: JWT,
 		Cache:  cache,
 	}
+
 
 	s := api.NewServer()
 
@@ -44,23 +47,20 @@ func main() {
 		http.ServeFile(rw, req, "./views/css/output.css")
 	})
 
-	mux.HandleFunc("POST /createUser", internalResourcesMiddleware(routes.CreateUser, &resources))
-	mux.HandleFunc("POST /userlogin", internalResourcesMiddleware(routes.UserLogin, &resources))
+	mux.HandleFunc("POST /createUser", routes.CreateUser)
+	mux.HandleFunc("POST /userlogin", routes.UserLogin)
 	mux.HandleFunc("GET /home", sessionMiddleware(web.HomePage, &resources))
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
 	mux.HandleFunc("GET /", index)
 
-	resourcesHandler := resourcesMiddleware(&resources)
 	stMux := api.HandlerWithOptions(s, api.StdHTTPServerOptions{
 		BaseRouter:  mux,
-		Middlewares: []api.MiddlewareFunc{resourcesHandler},
 	})
 
-	resources.Server = s
-
+	resourcesHandler := middleware.InjectMiddleware(&resources)(stMux)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: stMux,
+		Handler: resourcesHandler,
 	}
 
 	log.Printf("Listening on %v", server.Addr)

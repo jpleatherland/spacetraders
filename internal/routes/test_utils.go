@@ -13,9 +13,10 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/jpleatherland/spacetraders/internal/db"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
+	"github.com/jpleatherland/spacetraders/internal/db"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 )
 
 func setupTestEnvironment() (*sql.DB, string, error) {
@@ -69,16 +70,17 @@ func teardownTestEnvironment() {
 	log.Println("dropped test database")
 }
 
-func createTestUser(resources *Resources, name, password string) error {
+func createTestUser(resources *middleware.Resources, name, password string) error {
 	baseURL := "http://localhost:8080"
 	data := url.Values{}
 	data.Set("username", name)
 	data.Set("password", password)
 	
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
+	ctx := context.WithValue(req.Context(), "resources", resources)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
-	CreateUser(res, req, resources)
+	CreateUser(res, req.WithContext(ctx))
 
 	if res.Result().StatusCode != http.StatusCreated {
 		errorMsg := fmt.Sprintf("create user response status incorrect, expected: %v got: %v", http.StatusCreated, res.Result().Status)
@@ -87,7 +89,7 @@ func createTestUser(resources *Resources, name, password string) error {
 	return nil
 }
 
-func testUserLogin(resources *Resources, name, password string) (*http.Cookie, error) {
+func testUserLogin(resources *middleware.Resources, name, password string) (*http.Cookie, error) {
 	baseURL := "http://localhost:8080"
 	data := url.Values{}
 	data.Set("username", name)
@@ -96,7 +98,7 @@ func testUserLogin(resources *Resources, name, password string) (*http.Cookie, e
 	req := httptest.NewRequest("POST", baseURL, strings.NewReader(data.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res := httptest.NewRecorder()
-	UserLogin(res, req, resources)
+	UserLogin(res, req)
 
 	expected := http.StatusOK
 	got := res.Result().StatusCode
@@ -115,7 +117,7 @@ func testUserLogin(resources *Resources, name, password string) (*http.Cookie, e
 	return nil, errors.New("Session cookie not found")
 }
 
-func testGetSessionById(resources *Resources, cookie *http.Cookie) (db.Session, error) {
+func testGetSessionById(resources *middleware.Resources, cookie *http.Cookie) (db.Session, error) {
 	ctx := context.Background()
 	session := db.Session{}
 	session, err := resources.DB.GetSessionById(ctx, cookie.Value)
