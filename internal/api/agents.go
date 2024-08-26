@@ -26,3 +26,9 @@ func (s Server) GetAgent(w http.ResponseWriter, r *http.Request, agentSymbol str
 func (s Server) GetMyAgent(w http.ResponseWriter, r *http.Request) {
 
 }
+
+// Register New Agent
+// (POST /register)
+func Register(w http.ResponseWriter, r *http.Request) {
+	routes.RegisterAgent(w, r)
+}

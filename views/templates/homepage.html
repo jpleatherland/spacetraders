@@ -24,14 +24,16 @@
       {{.Server.RequestStatus}}<br />
       {{.Server.Status}}<br />
     </code>
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-8">
-      {{ template "section_leaderboards" .Server.Leaderboards }}
+    <div class="grid grid-cols-1 gap-4 ">
+      <div>
+        {{ template "section_leaderboards" .Server.Leaderboards }}
+      </div>
+      <div >
+        <h2>Agents321</h2>
+        {{ template "section_agents" .Agents }}
+      </div>
+      <div ></div>
     </div>
-    <div class="grid grid-cols-3 h-32 rounded-lg bg-gray-200 lg:col-span-2">
-      <h2>Agents321</h2>
-      {{ template "section_agents" .Agents }}
-    </div>
-    <div class="grid grid-cols-1 h-32 rounded-lg bg-gray-200"></div>
   </main>
   <footer>
     <!-- Site footer content goes here -->

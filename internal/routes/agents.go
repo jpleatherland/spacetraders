@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
+	"github.com/jpleatherland/spacetraders/internal/response"
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
@@ -127,4 +128,8 @@ func writeAgentToCache(resources *middleware.Resources, agent spec.Agent) {
 		agent,
 		time.Duration(5*time.Minute),
 	)
+}
+
+func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
+	response.RespondWithHTML(rw, "<p>Agent register hit. Not registered.</p>", http.StatusOK)
 }
