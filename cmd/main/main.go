@@ -43,8 +43,8 @@ func main() {
 	s := api.NewServer()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /css/output.css", func(rw http.ResponseWriter, req *http.Request) {
-		http.ServeFile(rw, req, "./views/css/output.css")
+	mux.HandleFunc("GET /stylesheet.css", func(rw http.ResponseWriter, req *http.Request) {
+		http.ServeFile(rw, req, "./views/css/stylesheet.css")
 	})
 	mux.HandleFunc("GET /favicon.ico", func(rw http.ResponseWriter, req *http.Request) {
 		http.ServeFile(rw, req, "./views/rocket-16.ico")

@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,52 +13,40 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
-func CreateAgent(username, faction string) (string, error) {
-	createAgentUrl := "/register"
-
-	requestBody := struct {
-		Symbol  string `json:"symbol"`
-		Faction string `json:"faction"`
-	}{
-		Symbol:  username,
-		Faction: faction,
+func CreateAgent(req *http.Request) (spec.RegisterResponse, int, error) {
+	url, ok := middleware.GetUrlContext(req.Context())
+	if !ok {
+		return spec.RegisterResponse{}, http.StatusInternalServerError, errors.New("unable to get register URL")
 	}
 
-	jsonBody, err := json.Marshal(requestBody)
-	if err != nil {
-		return "", err
-	}
+	registerResult := spec.RegisterResponse{}
 
-	reader := bytes.NewReader(jsonBody)
+	resp, err := http.Post(baseUrl+url, "application/json", req.Body)
 
-	resp, err := http.Post(createAgentUrl, "application/json", reader)
 	if err != nil {
-		return "", err
+		return registerResult, resp.StatusCode, err
 	}
 	defer resp.Body.Close()
 
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
-	}
-	var result map[string]interface{}
-	err = json.Unmarshal([]byte(bytes), &result)
-	if err != nil {
-		return "", err
+		return registerResult, resp.StatusCode, err
 	}
 
-	return result["data"].(map[string]interface{})["token"].(string), nil
+	err = json.Unmarshal([]byte(bytes), &registerResult)
+	return registerResult, resp.StatusCode, err
 }
 
-func GetAgents(resources *middleware.Resources, userId uuid.UUID) ([]spec.Agent, error) {
+func GetAgents(resources *middleware.Resources, session db.Session) ([]spec.Agent, error) {
 	ctx := context.Background()
 	agents := []spec.Agent{}
-	agentIds, err := resources.DB.GetAgentsByUserId(ctx, userId)
+	agentIds, err := resources.DB.GetAgentsByUserId(ctx, session.UserID)
 	if err != nil {
 		return agents, err
 	}
@@ -83,7 +71,7 @@ func GetAgents(resources *middleware.Resources, userId uuid.UUID) ([]spec.Agent,
 	}
 	for agent := range results {
 		agents = append(agents, agent)
-		writeAgentToCache(resources, agent)
+		writeAgentToCache(resources, agent, session)
 	}
 	return agents, nil
 }
@@ -122,14 +110,58 @@ func GetAgentTest() {
 	log.Println("in routes")
 }
 
-func writeAgentToCache(resources *middleware.Resources, agent spec.Agent) {
+func writeAgentToCache(resources *middleware.Resources, agent spec.Agent, session db.Session) error {
+	if !session.AgentID.Valid {
+		return errors.New("agentId is not valid, unable to cache")
+	}
 	resources.Cache.Add(
-		*agent.AccountId,
+		session.AgentID.UUID.String(),
 		agent,
 		time.Duration(5*time.Minute),
 	)
+	return nil
+}
+
+func writeAgentToDB(resources *middleware.Resources, registerResp spec.RegisterResponse, userId uuid.UUID) error {
+	dbAgentParams := db.CreateAgentParams{
+		ID:     uuid.New(),
+		Name:   registerResp.Data.Agent.Symbol,
+		Token:  registerResp.Data.Token,
+		UserID: userId,
+	}
+	err := resources.DB.CreateAgent(context.Background(), dbAgentParams)
+	return err
 }
 
 func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
-	response.RespondWithHTML(rw, "<p>Agent register hit. Not registered.</p>", http.StatusOK)
+	resources, ok := middleware.GetResources(req.Context())
+	if !ok {
+		response.RespondWithHTMLError(rw, "Request failure", http.StatusInternalServerError)
+		return
+	}
+
+	session, ok := middleware.GetSession(req.Context())
+	if !ok {
+		response.RespondWithHTMLError(rw, "Request failure", http.StatusInternalServerError)
+		return
+	}
+
+	registeredAgent, respCode, err := CreateAgent(req)
+	if err != nil && respCode == http.StatusCreated {
+		htmlResp := fmt.Sprintf("Agent registered but the response wasn't handled: %v", err.Error())
+		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
+		return
+	}
+	if err != nil && respCode != http.StatusCreated {
+		htmlResp := fmt.Sprintf("Agent not registered: %v", err.Error())
+		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
+		return
+	}
+
+	err = writeAgentToDB(resources, registeredAgent, session.UserID)
+	if err != nil {
+		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+	}
+
+	response.RespondWithHTML(rw, "Agent registered. Select from the list to continue with this agent", respCode)
 }

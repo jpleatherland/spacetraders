@@ -35,3 +35,35 @@ type ServerStatus struct {
 		Waypoints int `json:"waypoints"`
 	} `json:"stats"`
 }
+
+type RegisterResponse struct {
+	Data struct {
+		Agent    Agent    `json:"agent"`
+		Contract Contract `json:"contract"`
+		Faction  Faction  `json:"faction"`
+		Ship     Ship     `json:"ship"`
+		Token    string   `json:"token"`
+	} `json:"data"`
+}
+
+var Factions = [19]FactionSymbol{
+	FactionSymbolAEGIS,
+	FactionSymbolANCIENTS,
+	FactionSymbolASTRO,
+	FactionSymbolCOBALT,
+	FactionSymbolCORSAIRS,
+	FactionSymbolCOSMIC,
+	FactionSymbolCULT,
+	FactionSymbolDOMINION,
+	FactionSymbolECHO,
+	FactionSymbolETHEREAL,
+	FactionSymbolGALACTIC,
+	FactionSymbolLORDS,
+	FactionSymbolOBSIDIAN,
+	FactionSymbolOMEGA,
+	FactionSymbolQUANTUM,
+	FactionSymbolSHADOW,
+	FactionSymbolSOLITARY,
+	FactionSymbolUNITED,
+	FactionSymbolVOID,
+}

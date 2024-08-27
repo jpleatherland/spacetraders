@@ -50,11 +50,10 @@ func SessionMiddleware(next http.Handler) http.Handler {
 
 		sessionCookie, err := r.Cookie("spacetradersSession")
 		if err != nil {
-			// http.Redirect(w, r, "/login", http.StatusFound)
 			log.Println("unable to find session cookie")
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		}
-
-		var ctx context.Context
 
 		session, err := resources.DB.GetSessionById(context.Background(), sessionCookie.Value)
 		if err != nil {
@@ -63,7 +62,7 @@ func SessionMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(r.Context(), SessionKey, session)
+		ctx := context.WithValue(r.Context(), SessionKey, session)
 
 		// Pass the request with the new context to the next handler
 		next.ServeHTTP(w, r.WithContext(ctx))

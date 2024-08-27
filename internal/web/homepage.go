@@ -13,8 +13,11 @@ import (
 )
 
 type HomePageData struct {
-	Server spec.ServerStatus
-	Agents []spec.Agent
+	Server        spec.ServerStatus
+	AgentsSection struct {
+		Agents   []spec.Agent
+		Factions [19]spec.FactionSymbol
+	}
 }
 
 func HomePage(rw http.ResponseWriter, req *http.Request) {
@@ -35,10 +38,7 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 		response.RespondWithError(rw, "Unable to load templates", http.StatusInternalServerError)
 	}
 
-	pageData := HomePageData{
-		Server: spec.ServerStatus{},
-		Agents: []spec.Agent{},
-	}
+	pageData := HomePageData{}
 
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
@@ -60,10 +60,11 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 		pageData.Server = result
 	}
 
-	pageData.Agents, err = routes.GetAgents(resources, session.UserID)
+	pageData.AgentsSection.Agents, err = routes.GetAgents(resources, session)
 	if err != nil {
 		log.Println(err.Error())
 	}
+	pageData.AgentsSection.Factions = spec.Factions
 
 	err = tmpl.Execute(rw, pageData)
 	if err != nil {

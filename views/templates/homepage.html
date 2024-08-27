@@ -10,35 +10,34 @@
   <script src="https://unpkg.com/htmx.org@2.0.1"
     integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
     crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="../css/output.css">
+  <link rel="stylesheet" href="stylesheet.css">
 </head>
 
 <body>
   <header>
     <container>
+      <h1 class="text-4xl">Dashboard</h1>
+      <code>
+        {{.Server.RequestStatus}}<br />
+        {{.Server.Status}}<br />
+      </code>
     </container>
   </header>
   <main>
-    <h1 class="text-4xl">Dashboard</h1>
-    <code>
-      {{.Server.RequestStatus}}<br />
-      {{.Server.Status}}<br />
-    </code>
-    <div class="grid grid-cols-1 gap-4 ">
-      <div>
-        {{ template "section_leaderboards" .Server.Leaderboards }}
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-8">
+      <div class="h-32 rounded-lg">
+        {{ template "section_leaderboards" .Server.Leaderboards }} </div>
+        <div class="h-32 rounded-lg lg:col-span-2 min-w=100">
+          {{ template "section_agents" .AgentsSection }}
+        </div>
+        <div class="h-32 rounded-lg">
+          <h2>I am another section </h2>
+        </div>
       </div>
-      <div >
-        <h2>Agents321</h2>
-        {{ template "section_agents" .Agents }}
-      </div>
-      <div ></div>
-    </div>
   </main>
   <footer>
     <!-- Site footer content goes here -->
   </footer>
-  <script src="index.js"></script>
 </body>
 
 </html>

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/routes"
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
@@ -30,5 +31,7 @@ func (s Server) GetMyAgent(w http.ResponseWriter, r *http.Request) {
 // Register New Agent
 // (POST /register)
 func Register(w http.ResponseWriter, r *http.Request) {
+	middleware.UrlContext("/register", r)
+	log.Println(r.Context().Value(middleware.UrlKey))
 	routes.RegisterAgent(w, r)
 }
