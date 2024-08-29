@@ -55,7 +55,6 @@ func (s Server) SiphonResources(w http.ResponseWriter, r *http.Request, shipSymb
 func (s Server) CreateSurvey(w http.ResponseWriter, r *http.Request, shipSymbol string)           {}
 func (s Server) TransferCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)          {}
 func (s Server) WarpShip(w http.ResponseWriter, r *http.Request, shipSymbol string)               {}
-func (s Server) Register(w http.ResponseWriter, r *http.Request)                                  {}
 func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.GetSystemsParams)  {}
 func (s Server) GetSystem(w http.ResponseWriter, r *http.Request, systemSymbol string)            {}
 func (s Server) GetSystemWaypoints(w http.ResponseWriter, r *http.Request, systemSymbol string, params spec.GetSystemWaypointsParams) {

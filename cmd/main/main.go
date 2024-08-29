@@ -72,6 +72,7 @@ func main() {
 			middleware.InjectResources(&resources)(stMux).ServeHTTP(w, r)
 			return
 		}
+		log.Printf("in handler: %v \n", r.URL)
 		middleware.InjectResources(&resources)(
 			middleware.SessionMiddleware(
 				stMux),

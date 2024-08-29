@@ -12,10 +12,6 @@ import (
 // List Agents
 // (GET /agents)
 func (s Server) GetAgents(w http.ResponseWriter, r *http.Request, params spec.GetAgentsParams) {
-	routes.GetAgentTest()
-	log.Println("in get agents")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("hi"))
 }
 
 // Get Public Agent
@@ -30,8 +26,9 @@ func (s Server) GetMyAgent(w http.ResponseWriter, r *http.Request) {
 
 // Register New Agent
 // (POST /register)
-func Register(w http.ResponseWriter, r *http.Request) {
-	middleware.UrlContext("/register", r)
+func (s Server) Register(w http.ResponseWriter, r *http.Request) {
+	log.Println("In register")
+	reqWithContext := middleware.UrlContext("/register", r)
 	log.Println(r.Context().Value(middleware.UrlKey))
-	routes.RegisterAgent(w, r)
+	routes.RegisterAgent(w, reqWithContext)
 }

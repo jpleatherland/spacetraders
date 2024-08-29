@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -8,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 
@@ -27,7 +27,9 @@ func CreateAgent(req *http.Request) (spec.RegisterResponse, int, error) {
 
 	registerResult := spec.RegisterResponse{}
 
-	resp, err := http.Post(baseUrl+url, "application/json", req.Body)
+	body, _ := io.ReadAll(req.Body)
+
+	resp, err := http.Post(baseUrl+url, "application/json", bytes.NewReader(body))
 
 	if err != nil {
 		return registerResult, resp.StatusCode, err
@@ -37,6 +39,11 @@ func CreateAgent(req *http.Request) (spec.RegisterResponse, int, error) {
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return registerResult, resp.StatusCode, err
+	}
+
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("Unexpected status code received: %v", string(bytes[:]))
+		return registerResult, resp.StatusCode, errors.New(errMsg)
 	}
 
 	err = json.Unmarshal([]byte(bytes), &registerResult)
@@ -51,71 +58,90 @@ func GetAgents(resources *middleware.Resources, session db.Session) ([]spec.Agen
 		return agents, err
 	}
 
-	if len(agents) == 0 {
+	if len(agentIds) == 0 {
 		return agents, errors.New("no agents found")
 	}
 
 	wg := sync.WaitGroup{}
-	results := make(chan spec.Agent)
-	wg.Add(len(agents))
+	results := make(chan spec.Agent, len(agentIds))
+	wg.Add(len(agentIds))
 
 	for i := range agentIds {
 		go func() {
 			defer wg.Done()
-			agent, err := GetAgentHandler(agentIds[i].ID)
+			cacheAgent, ok := resources.Cache.Get(agentIds[i].ID.String())
+			if ok {
+				log.Printf("found %v in cache\n", agentIds[i].ID.String())
+				t, ok := cacheAgent.(spec.Agent)
+				if ok {
+					results <- t
+					return
+				}
+			}
+			agent, err := GetAgentHandler(resources, agentIds[i].ID)
 			if err != nil {
 				log.Printf("Get agent failed for %v: %v", agentIds[i].ID.String(), err.Error())
+				return
 			}
+			writeAgentToCache(resources, agentIds[i].ID.String(), agent)
 			results <- agent
 		}()
 	}
+
+	wg.Wait()
+	close(results)
+
+	chIdx := 0
 	for agent := range results {
 		agents = append(agents, agent)
-		writeAgentToCache(resources, agent, session)
+		chIdx++
 	}
 	return agents, nil
 }
 
-func GetAgentHandler(agentId uuid.UUID) (spec.Agent, error) {
-	agent := spec.Agent{}
+func GetAgentHandler(resources *middleware.Resources, agentId uuid.UUID) (spec.Agent, error) {
+	agent := spec.AgentResponse{}
 	myAgentUrl := "/my/agent"
 
 	req, err := http.NewRequest("GET", baseUrl+myAgentUrl, nil)
 	if err != nil {
-		return agent, err
+		return agent.Data, err
 	}
-	req.Header.Set("Authorization", "Bearer "+agentId.String())
+	ctx := context.Background()
+
+	agentToken, err := resources.DB.GetAgentTokenById(ctx, agentId)
+	if err != nil {
+		return agent.Data, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+agentToken)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return agent, err
+		return agent.Data, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return agent.Data, err
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return agent, errors.New(strconv.Itoa(res.StatusCode))
-	}
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return agent, err
+		errMsg := fmt.Sprintf("%v: %v", res.StatusCode, body)
+		return agent.Data, errors.New(errMsg)
 	}
 
 	err = json.Unmarshal(body, &agent)
 	if err != nil {
-		return agent, err
+		log.Println(err.Error())
 	}
 
-	return agent, nil
+	return agent.Data, nil
 }
 
-func GetAgentTest() {
-	log.Println("in routes")
-}
-
-func writeAgentToCache(resources *middleware.Resources, agent spec.Agent, session db.Session) error {
-	if !session.AgentID.Valid {
-		return errors.New("agentId is not valid, unable to cache")
-	}
+func writeAgentToCache(resources *middleware.Resources, agentId string, agent spec.Agent) error {
+	log.Printf("adding %v to cache\n", agentId)
 	resources.Cache.Add(
-		session.AgentID.UUID.String(),
+		agentId,
 		agent,
 		time.Duration(5*time.Minute),
 	)
@@ -156,6 +182,10 @@ func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
 		htmlResp := fmt.Sprintf("Agent not registered: %v", err.Error())
 		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
 		return
+	}
+	if respCode != http.StatusCreated {
+		htmlResp := fmt.Sprintf("Agent not registered: %v", err.Error())
+		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
 	}
 
 	err = writeAgentToDB(resources, registeredAgent, session.UserID)

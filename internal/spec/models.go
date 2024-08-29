@@ -46,6 +46,10 @@ type RegisterResponse struct {
 	} `json:"data"`
 }
 
+type AgentResponse struct {
+	Data Agent `json:"data"`
+}
+
 var Factions = [19]FactionSymbol{
 	FactionSymbolAEGIS,
 	FactionSymbolANCIENTS,
