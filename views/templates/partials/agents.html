@@ -1,5 +1,6 @@
 {{ define "section_agents" }}
-<h3 class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-teal-500 text-5xl font-black min-h-20">Agents
+<h3 class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-teal-500 text-5xl font-black min-h-20">
+  Agents
   Section</h3>
 {{ if .Agents }}
 <table class="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
@@ -16,15 +17,17 @@
   <tbody class="divide-y divide-gray-200">
     {{ range .Agents }}
     <tr>
-      <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{ .Symbol }}</td>
+      <td id="td-{{ .Symbol }}" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{ .Symbol }}</td>
       <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ .Credits }}</td>
       <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ .Headquarters }}</td>
       <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ .ShipCount }}</td>
       <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ .StartingFaction }}</td>
-      <td><a href="#"
-        class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700">
-        View
-      </a></td>
+      <td><a hx-post="/setSession/{{ .Symbol }}" hx-indicator="#spinner{{.Symbol}}"
+          class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+          View
+        <img id="spinner{{.Symbol}}" class="htmx-indicator" src="/spinner.svg" />
+        </a>
+      </td>
     </tr>
     {{ end }}
   </tbody>

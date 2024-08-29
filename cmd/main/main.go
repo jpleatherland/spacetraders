@@ -49,6 +49,9 @@ func main() {
 	mux.HandleFunc("GET /favicon.ico", func(rw http.ResponseWriter, req *http.Request) {
 		http.ServeFile(rw, req, "./views/rocket-16.ico")
 	})
+	mux.HandleFunc("GET /spinner.svg", func(rw http.ResponseWriter, req *http.Request) {
+		http.ServeFile(rw, req, "./views/img/spinner.svg")
+	})
 
 	homeHandler := middleware.InjectResources(&resources)(
 		middleware.SessionMiddleware(
@@ -58,6 +61,7 @@ func main() {
 
 	mux.HandleFunc("POST /createUser", routes.CreateUser)
 	mux.HandleFunc("POST /userlogin", routes.UserLogin)
+	mux.HandleFunc("POST /setSession/{agentSymbol}", routes.SetSession)
 	mux.Handle("GET /home", homeHandler)
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
 	mux.HandleFunc("GET /", index)
