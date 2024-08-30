@@ -1,19 +1,20 @@
 -- +goose Up
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS agents (
+CREATE TABLE agents (
     id UUID primary key,
     name TEXT NOT NULL,
     token TEXT NOT NULL,
     user_id UUID NOT NULL,
+    reset_datetime INT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE sessions (
     id TEXT primary key,
     expires_at TIMESTAMP NOT NULL,
     user_id UUID NOT NULL,
