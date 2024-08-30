@@ -43,13 +43,11 @@ func HomePage(rw http.ResponseWriter, req *http.Request) {
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
 	if !exists {
-		statusResp, err = routes.GetStatusHandler()
+		statusResp, err = routes.GetStatusHandler(resources)
 		if err != nil {
 			log.Println(err.Error())
 			pageData.Server.RequestStatus = "Unable to get server status"
-		} else {
-			resources.Cache.Add("serverStatus", statusResp, 0)
-		}
+		} 
 	}
 
 	result, ok := statusResp.(spec.ServerStatus)

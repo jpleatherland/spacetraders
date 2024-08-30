@@ -1,11 +1,11 @@
 -- +goose Up
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
 );
 
-CREATE TABLE agents (
+CREATE TABLE IF NOT EXISTS agents (
     id UUID primary key,
     name TEXT NOT NULL,
     token TEXT NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE agents (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
     id TEXT primary key,
     expires_at TIMESTAMP NOT NULL,
     user_id UUID NOT NULL,

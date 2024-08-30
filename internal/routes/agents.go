@@ -3,6 +3,7 @@ package routes
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -60,6 +61,15 @@ func GetAgents(resources *middleware.Resources, session db.Session) ([]spec.Agen
 
 	if len(agentIds) == 0 {
 		return agents, errors.New("no agents found")
+	}
+
+	for _, agent := range agentIds {
+		if agent.ResetDatetime.Valid && int32(time.Now().Unix()) > agent.ResetDatetime.Int32 {
+			err := resources.DB.DeleteAgentById(ctx, agent.ID)
+			if err != nil {
+				log.Printf("Agent expired but unable to delete from DB: %v", agent.ID)
+			}
+		}
 	}
 
 	wg := sync.WaitGroup{}
@@ -126,6 +136,9 @@ func GetAgentHandler(resources *middleware.Resources, agentId uuid.UUID) (spec.A
 	}
 
 	if res.StatusCode != http.StatusOK {
+		if res.StatusCode == http.StatusNotFound {
+
+		}
 		errMsg := fmt.Sprintf("%v: %v", res.StatusCode, body)
 		return agent.Data, errors.New(errMsg)
 	}
@@ -148,12 +161,17 @@ func writeAgentToCache(resources *middleware.Resources, agentId string, agent sp
 	return nil
 }
 
-func writeAgentToDB(resources *middleware.Resources, registerResp spec.RegisterResponse, userId uuid.UUID) error {
+func writeAgentToDB(resources *middleware.Resources, registerResp spec.RegisterResponse, userId uuid.UUID, resetTime time.Time) error {
+	resetDateTime := sql.NullInt32{
+		Int32: int32(resetTime.Unix()),
+		Valid: !resetTime.IsZero(),
+	}
 	dbAgentParams := db.CreateAgentParams{
-		ID:     uuid.New(),
-		Name:   registerResp.Data.Agent.Symbol,
-		Token:  registerResp.Data.Token,
-		UserID: userId,
+		ID:            uuid.New(),
+		Name:          registerResp.Data.Agent.Symbol,
+		Token:         registerResp.Data.Token,
+		UserID:        userId,
+		ResetDatetime: resetDateTime,
 	}
 	err := resources.DB.CreateAgent(context.Background(), dbAgentParams)
 	return err
@@ -188,7 +206,17 @@ func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
 		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
 	}
 
-	err = writeAgentToDB(resources, registeredAgent, session.UserID)
+	serverStatus, err := GetStatusHandler(resources)
+	if err != nil {
+		log.Printf("failed to get server status: %v\n", err.Error())
+	}
+
+	resetTime, err := time.Parse(time.RFC3339, serverStatus.ServerResets.Next)
+	if err != nil {
+		log.Println("unable to parse server reset time")
+	}
+
+	err = writeAgentToDB(resources, registeredAgent, session.UserID, resetTime)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 	}

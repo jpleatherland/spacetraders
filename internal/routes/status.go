@@ -7,9 +7,10 @@ import (
 	"net/http"
 
 	"github.com/jpleatherland/spacetraders/internal/spec"
+	"github.com/jpleatherland/spacetraders/internal/middleware"
 )
 
-func GetStatusHandler() (spec.ServerStatus, error) {
+func GetStatusHandler(resources *middleware.Resources) (spec.ServerStatus, error) {
 	statusResp := spec.ServerStatus{}
 	resp, err := http.Get(baseUrl + "/")
 	if err != nil {
@@ -31,5 +32,6 @@ func GetStatusHandler() (spec.ServerStatus, error) {
 		return statusResp, err
 	}
 	statusResp.RequestStatus = "ok"
+	resources.Cache.Add("serverStatus", statusResp, 0)
 	return statusResp, nil
 }

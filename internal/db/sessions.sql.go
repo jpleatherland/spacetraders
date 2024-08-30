@@ -35,7 +35,8 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 }
 
 const getSessionById = `-- name: GetSessionById :one
-SELECT id, expires_at, user_id, agent_id FROM sessions WHERE id = $1 and expires_at > NOW()
+SELECT id, expires_at, user_id, agent_id FROM sessions 
+WHERE id = $1 and expires_at > NOW()
 `
 
 func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error) {
@@ -48,4 +49,20 @@ func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error
 		&i.AgentID,
 	)
 	return i, err
+}
+
+const setAgentForSession = `-- name: SetAgentForSession :exec
+UPDATE sessions 
+SET agent_id = $1
+WHERE id = $2
+`
+
+type SetAgentForSessionParams struct {
+	AgentID uuid.NullUUID `json:"agent_id"`
+	ID      string        `json:"id"`
+}
+
+func (q *Queries) SetAgentForSession(ctx context.Context, arg SetAgentForSessionParams) error {
+	_, err := q.db.ExecContext(ctx, setAgentForSession, arg.AgentID, arg.ID)
+	return err
 }

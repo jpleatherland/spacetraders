@@ -5,16 +5,18 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type Agent struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Token  string    `json:"token"`
-	UserID uuid.UUID `json:"user_id"`
+	ID            uuid.UUID     `json:"id"`
+	Name          string        `json:"name"`
+	Token         string        `json:"token"`
+	UserID        uuid.UUID     `json:"user_id"`
+	ResetDatetime sql.NullInt32 `json:"reset_datetime"`
 }
 
 type Session struct {

@@ -7,20 +7,22 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const createAgent = `-- name: CreateAgent :exec
-INSERT INTO agents (id, name, token, user_id)
-VALUES ($1, $2, $3, $4)
+INSERT INTO agents (id, name, token, user_id, reset_datetime)
+VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreateAgentParams struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Token  string    `json:"token"`
-	UserID uuid.UUID `json:"user_id"`
+	ID            uuid.UUID     `json:"id"`
+	Name          string        `json:"name"`
+	Token         string        `json:"token"`
+	UserID        uuid.UUID     `json:"user_id"`
+	ResetDatetime sql.NullInt32 `json:"reset_datetime"`
 }
 
 func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) error {
@@ -29,7 +31,17 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) error 
 		arg.Name,
 		arg.Token,
 		arg.UserID,
+		arg.ResetDatetime,
 	)
+	return err
+}
+
+const deleteAgentById = `-- name: DeleteAgentById :exec
+DELETE FROM agents WHERE id = $1
+`
+
+func (q *Queries) DeleteAgentById(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteAgentById, id)
 	return err
 }
 
@@ -45,12 +57,13 @@ func (q *Queries) GetAgentTokenById(ctx context.Context, id uuid.UUID) (string, 
 }
 
 const getAgentsByUserId = `-- name: GetAgentsByUserId :many
-SELECT id, name FROM agents WHERE user_id = $1
+SELECT id, name, reset_datetime FROM agents WHERE user_id = $1
 `
 
 type GetAgentsByUserIdRow struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID            uuid.UUID     `json:"id"`
+	Name          string        `json:"name"`
+	ResetDatetime sql.NullInt32 `json:"reset_datetime"`
 }
 
 func (q *Queries) GetAgentsByUserId(ctx context.Context, userID uuid.UUID) ([]GetAgentsByUserIdRow, error) {
@@ -62,7 +75,7 @@ func (q *Queries) GetAgentsByUserId(ctx context.Context, userID uuid.UUID) ([]Ge
 	var items []GetAgentsByUserIdRow
 	for rows.Next() {
 		var i GetAgentsByUserIdRow
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.ResetDatetime); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
