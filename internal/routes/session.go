@@ -3,17 +3,15 @@ package routes
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
+	"github.com/jpleatherland/spacetraders/internal/db"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
 )
 
 func SetSession(rw http.ResponseWriter, req *http.Request) {
-	symbol := req.PathValue("symbol")
-	log.Println("in set session", symbol)
-	time.Sleep(5 * time.Second)
+	symbol := req.PathValue("agentSymbol")
 
 	resources, ok := middleware.GetResources(req.Context())
 	if !ok {
@@ -28,15 +26,29 @@ func SetSession(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println("failed to get agents by user id: ", err.Error())
 		response.RespondWithHTMLError(rw, "server error", http.StatusInternalServerError)
+		return
 	}
+
+	sessionAgentParams := db.SetAgentForSessionParams{ID: session.ID, AgentID: uuid.NullUUID{}}
 	for _, agent := range agents {
 		if agent.Name == symbol {
-			session.AgentID = uuid.NullUUID{
-				UUID: agent.ID,
-				Valid: true,
-			}
+			sessionAgentParams.AgentID.UUID = agent.ID
+			sessionAgentParams.AgentID.Valid = true
 			break
 		}
 	}
 
+	if !sessionAgentParams.AgentID.Valid {
+		response.RespondWithHTMLError(rw, "unable to find agent for session", http.StatusInternalServerError)
+		return
+	}
+
+	err = resources.DB.SetAgentForSession(req.Context(), sessionAgentParams)
+	if err != nil {
+		response.RespondWithHTMLError(rw, "unable to set agent for session", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("HX-Redirect", "http://localhost:8080/game")
+	rw.WriteHeader(http.StatusOK)
 }

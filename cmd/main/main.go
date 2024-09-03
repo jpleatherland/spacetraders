@@ -53,16 +53,17 @@ func main() {
 		http.ServeFile(rw, req, "./views/img/spinner.svg")
 	})
 
-	homeHandler := middleware.InjectResources(&resources)(
-		middleware.SessionMiddleware(
-			http.HandlerFunc(web.HomePage),
-		),
-	)
+	//homeHandler := middleware.InjectResources(&resources)(
+	 //   middleware.SessionMiddleware(
+	 //   	http.HandlerFunc(web.HomePage),
+	 //   ),
+	//
 
 	mux.HandleFunc("POST /createUser", routes.CreateUser)
 	mux.HandleFunc("POST /userlogin", routes.UserLogin)
 	mux.HandleFunc("POST /setSession/{agentSymbol}", routes.SetSession)
-	mux.Handle("GET /home", homeHandler)
+	mux.HandleFunc("GET /game", web.Game) 
+	mux.HandleFunc("GET /home", web.HomePage)
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
 	mux.HandleFunc("GET /", index)
 

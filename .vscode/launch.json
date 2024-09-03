@@ -6,8 +6,8 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "program": "/home/leathj/boot.dev/spacetraders/cmd/main",
-      "cwd": "/home/leathj/boot.dev/spacetraders"
+      "program": "/home/jack/code/spacetraders/cmd/main",
+      "cwd": "/home/jack/code/spacetraders"
     }
   ]
 }
