@@ -3,36 +3,40 @@ package routes
 import (
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
-	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
 func SetSession(rw http.ResponseWriter, req *http.Request) {
-	symbol := strings.TrimPrefix(req.URL.Path, "/products/")
+	symbol := req.PathValue("symbol")
 	log.Println("in set session", symbol)
 	time.Sleep(5 * time.Second)
+
 	resources, ok := middleware.GetResources(req.Context())
 	if !ok {
 		log.Println("unable to get resources in set session")
 		response.RespondWithHTMLError(rw, "failed to set agent session", http.StatusInternalServerError)
 
 	}
-	statusResp, exists := resources.Cache.Get("serverStatus")
 
-	if !exists {
-		statusResp, _ = GetStatusHandler(resources)
+	session, ok := middleware.GetSession(req.Context())
+
+	agents, err := resources.DB.GetAgentsByUserId(req.Context(), session.UserID)
+	if err != nil {
+		log.Println("failed to get agents by user id: ", err.Error())
+		response.RespondWithHTMLError(rw, "server error", http.StatusInternalServerError)
+	}
+	for _, agent := range agents {
+		if agent.Name == symbol {
+			session.AgentID = uuid.NullUUID{
+				UUID: agent.ID,
+				Valid: true,
+			}
+			break
+		}
 	}
 
-	status, ok := statusResp.(spec.ServerStatus)
-	if !ok {
-		log.Println("server status not of type ServerStatus, unable to set reset date on agent")
-	}
-	
-	resetDate := status.ServerResets.Next	
-
-	
 }
