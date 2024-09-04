@@ -21,7 +21,6 @@ type HomePageData struct {
 }
 
 func HomePage(rw http.ResponseWriter, req *http.Request) {
-	log.Println("in homepage")
 	resources, ok := middleware.GetResources(req.Context())
 	if !ok {
 		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)

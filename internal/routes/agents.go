@@ -79,15 +79,6 @@ func GetAgents(resources *middleware.Resources, session db.Session) ([]spec.Agen
 	for i := range agentIds {
 		go func() {
 			defer wg.Done()
-			cacheAgent, ok := resources.Cache.Get(agentIds[i].ID.String())
-			if ok {
-				log.Printf("found %v in cache\n", agentIds[i].ID.String())
-				t, ok := cacheAgent.(spec.Agent)
-				if ok {
-					results <- t
-					return
-				}
-			}
 			agent, err := GetAgentHandler(resources, agentIds[i].ID)
 			if err != nil {
 				log.Printf("Get agent failed for %v: %v", agentIds[i].ID.String(), err.Error())
@@ -110,6 +101,15 @@ func GetAgents(resources *middleware.Resources, session db.Session) ([]spec.Agen
 }
 
 func GetAgentHandler(resources *middleware.Resources, agentId uuid.UUID) (spec.Agent, error) {
+	cacheAgent, ok := resources.Cache.Get(agentId.String())
+	if ok {
+		log.Printf("found %v in cache\n", agentId.String())
+		t, ok := cacheAgent.(spec.Agent)
+		if ok {
+			return t, nil
+		}
+	}
+
 	agent := spec.AgentResponse{}
 	myAgentUrl := "/my/agent"
 
@@ -147,6 +147,8 @@ func GetAgentHandler(resources *middleware.Resources, agentId uuid.UUID) (spec.A
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	writeAgentToCache(resources, agentId.String(), agent.Data)
 
 	return agent.Data, nil
 }

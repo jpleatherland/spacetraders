@@ -53,12 +53,6 @@ func main() {
 		http.ServeFile(rw, req, "./views/img/spinner.svg")
 	})
 
-	//homeHandler := middleware.InjectResources(&resources)(
-	 //   middleware.SessionMiddleware(
-	 //   	http.HandlerFunc(web.HomePage),
-	 //   ),
-	//
-
 	mux.HandleFunc("POST /createUser", routes.CreateUser)
 	mux.HandleFunc("POST /userlogin", routes.UserLogin)
 	mux.HandleFunc("POST /setSession/{agentSymbol}", routes.SetSession)
@@ -77,12 +71,12 @@ func main() {
 			middleware.InjectResources(&resources)(stMux).ServeHTTP(w, r)
 			return
 		}
-		log.Printf("in handler: %v \n", r.URL)
 		middleware.InjectResources(&resources)(
 			middleware.SessionMiddleware(
 				stMux),
 		).ServeHTTP(w, r)
 	})
+
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: handler,
