@@ -50,6 +50,10 @@ type AgentResponse struct {
 	Data Agent `json:"data"`
 }
 
+type ContractResponse struct {
+	Data Contract `json:"data"`
+}
+
 var Factions = [19]FactionSymbol{
 	FactionSymbolAEGIS,
 	FactionSymbolANCIENTS,
