@@ -14,12 +14,6 @@ func NewServer() Server {
 
 func (s Server) GetFactions(w http.ResponseWriter, r *http.Request, params spec.GetFactionsParams) {}
 func (s Server) GetFaction(w http.ResponseWriter, r *http.Request, factionSymbol string)           {}
-func (s Server) GetContracts(w http.ResponseWriter, r *http.Request, params spec.GetContractsParams) {
-}
-func (s Server) GetContract(w http.ResponseWriter, r *http.Request, contractId string)           {}
-func (s Server) AcceptContract(w http.ResponseWriter, r *http.Request, contractId string)        {}
-func (s Server) DeliverContract(w http.ResponseWriter, r *http.Request, contractId string)       {}
-func (s Server) FulfillContract(w http.ResponseWriter, r *http.Request, contractId string)       {}
 func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.GetMyShipsParams) {}
 func (s Server) PurchaseShip(w http.ResponseWriter, r *http.Request)                             {}
 func (s Server) GetMyShip(w http.ResponseWriter, r *http.Request, shipSymbol string)             {}
