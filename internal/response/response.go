@@ -21,6 +21,7 @@ func RespondWithError(rw http.ResponseWriter, msg string, code int) {
 	type errorResponse struct {
 		Error string `json:"error"`
 	}
+	log.Println(msg)
 	RespondWithJSON(rw, code, errorResponse{
 		Error: msg,
 	})
@@ -35,5 +36,6 @@ func RespondWithHTML(rw http.ResponseWriter, html string, code int) {
 
 func RespondWithHTMLError(rw http.ResponseWriter, error string, code int) {
 	errMsg := "<p>" + error + "</p>"
+	log.Println(errMsg)
 	RespondWithHTML(rw, errMsg, code)
 }

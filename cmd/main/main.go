@@ -56,9 +56,15 @@ func main() {
 	mux.HandleFunc("POST /createUser", routes.CreateUser)
 	mux.HandleFunc("POST /userlogin", routes.UserLogin)
 	mux.HandleFunc("POST /setSession/{agentSymbol}", routes.SetSession)
-	mux.HandleFunc("GET /game", web.Game) 
-	mux.HandleFunc("GET /home", web.HomePage)
+
 	mux.HandleFunc("GET /login", redirectLogin(web.LoginPage))
+	mux.HandleFunc("GET /home", web.HomePage)
+	mux.HandleFunc("GET /game", web.Game)
+	mux.HandleFunc("GET /contracts", web.Contracts)
+	mux.HandleFunc("GET /agentinfo", web.AgentInfo)
+	mux.HandleFunc("GET /fleet", web.Fleet)
+	mux.HandleFunc("GET /systemdetails", web.SystemDetails)
+
 	mux.HandleFunc("GET /", index)
 
 	stMux := spec.HandlerWithOptions(s, spec.StdHTTPServerOptions{
@@ -67,6 +73,7 @@ func main() {
 	})
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL.Path)
 		if strings.Contains(r.URL.Path, "login") || r.URL.Path == "/createUser" {
 			middleware.InjectResources(&resources)(stMux).ServeHTTP(w, r)
 			return

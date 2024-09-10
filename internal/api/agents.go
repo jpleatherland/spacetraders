@@ -30,5 +30,6 @@ func (s Server) Register(w http.ResponseWriter, r *http.Request) {
 	log.Println("In register")
 	reqWithContext := middleware.UrlContext("/register", r)
 	log.Println(r.Context().Value(middleware.UrlKey))
+	log.Println(reqWithContext.Context().Value(middleware.UrlKey))
 	routes.RegisterAgent(w, reqWithContext)
 }

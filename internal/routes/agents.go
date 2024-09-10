@@ -206,6 +206,7 @@ func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
 	if respCode != http.StatusCreated {
 		htmlResp := fmt.Sprintf("Agent not registered: %v", err.Error())
 		response.RespondWithHTMLError(rw, htmlResp, http.StatusInternalServerError)
+		return
 	}
 
 	serverStatus, err := GetStatusHandler(resources)
@@ -221,6 +222,7 @@ func RegisterAgent(rw http.ResponseWriter, req *http.Request) {
 	err = writeAgentToDB(resources, registeredAgent, session.UserID, resetTime)
 	if err != nil {
 		response.RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	response.RespondWithHTML(rw, "Agent registered. Select from the list to continue with this agent", respCode)
