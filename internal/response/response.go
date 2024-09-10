@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"path/filepath"
+	"text/template"
 )
 
 func RespondWithJSON(rw http.ResponseWriter, code int, payload interface{}) {
@@ -38,4 +40,20 @@ func RespondWithHTMLError(rw http.ResponseWriter, error string, code int) {
 	errMsg := "<p>" + error + "</p>"
 	log.Println(errMsg)
 	RespondWithHTML(rw, errMsg, code)
+}
+
+func RespondWithTemplate(rw http.ResponseWriter, templateName string, templateData interface{}){
+	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", templateName)))
+    err := tmpl.Execute(rw, templateData)
+	if err != nil {
+		RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func RespondWithPartialTemplate(rw http.ResponseWriter, partialFolderName, templateName string, templateData interface{}){
+	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", partialFolderName, templateName)))
+    err := tmpl.Execute(rw, templateData)
+	if err != nil {
+		RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
+	}
 }

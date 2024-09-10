@@ -12,7 +12,7 @@ import (
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
 
-type HomePageData struct {
+type homePageData struct {
 	Server        spec.ServerStatus
 	AgentsSection struct {
 		Agents   []spec.Agent
@@ -21,26 +21,24 @@ type HomePageData struct {
 }
 
 func HomePage(rw http.ResponseWriter, req *http.Request) {
-log.Println("in homepage")
-log.Println("getting resources")
 	resources, ok := middleware.GetResources(req.Context())
 	if !ok {
 		response.RespondWithError(rw, "unable to load resources", http.StatusInternalServerError)
 	}
-log.Println("getting session")
+
 	session, ok := middleware.GetSession(req.Context())
 	if !ok {
 		http.Redirect(rw, req, "/login", http.StatusFound)
 		return
 	}
-log.Println("Musting template")
+
 	tmpl, err := template.Must(template.ParseGlob(filepath.Join("views", "templates", "homepage.html"))).ParseGlob(filepath.Join("views", "templates", "partials", "*.html"))
 	if err != nil {
-log.Println(err.Error())
+		log.Println(err.Error())
 		response.RespondWithError(rw, "Unable to load templates", http.StatusInternalServerError)
 	}
 
-	pageData := HomePageData{}
+	pageData := homePageData{}
 
 	statusResp, exists := resources.Cache.Get("serverStatus")
 
@@ -49,7 +47,7 @@ log.Println(err.Error())
 		if err != nil {
 			log.Println(err.Error())
 			pageData.Server.RequestStatus = "Unable to get server status"
-		} 
+		}
 	}
 
 	result, ok := statusResp.(spec.ServerStatus)
