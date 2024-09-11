@@ -18,57 +18,70 @@ func (s Server) GetContracts(w http.ResponseWriter, r *http.Request, params spec
 		response.RespondWithError(w, "couldn't get resources", http.StatusInternalServerError)
 		return
 	}
+
 	session, ok := middleware.GetSession(r.Context())
-	contractsResponse, ok := resources.Cache.Get("myContracts")
 	if !ok {
-		log.Println("not found in cache, getting contracts")
-		//pageQuery := fmt.Sprintf("page=%v", params.Page)
-		//limitQuery := fmt.Sprintf("limit=%v", params.Limit)
-		url := "https://api.spacetraders.io/v2/my/contracts"// + pageQuery + "&" + limitQuery
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			log.Println(err.Error())
-			response.RespondWithHTML(w, "unable to get contracts", http.StatusInternalServerError)
-			return
-		}
-		agentToken, err := resources.DB.GetAgentTokenById(r.Context(), session.AgentID.UUID)
-		if err != nil {
-			response.RespondWithError(w, "couldn't get agentid", http.StatusInternalServerError)
-			return
-		}
-		req.Header.Set("Authorization", "Bearer "+agentToken)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Println(err.Error())
-			response.RespondWithHTMLError(w, "unable to get contracts", http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Println("unable to unmarshal contract: ", err.Error())
-			response.RespondWithHTMLError(w, "unable to get contract", http.StatusInternalServerError)
-			return
-		}
-		contractsResponse = spec.ContractsResponse{}
-		err = json.Unmarshal(body, &contractsResponse)
-		log.Println(string(body[:]))
-		if err != nil {
-			log.Println(err.Error())
-			response.RespondWithHTMLError(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		resources.Cache.Add("myContracts", contractsResponse, 0)
+		response.RespondWithError(w, "couldn't get session", http.StatusInternalServerError)
+		return
 	}
-	t, ok := contractsResponse.(spec.ContractsResponse)
-	if !ok {
-		log.Println("contracts response is not of type contracts response")
+
+	contractsResponse, ok := resources.Cache.Get("myContracts")
+	if ok {
+		response.RespondWithTemplate(w, "contracts.html", contractsResponse)
+	}
+
+	log.Println("not found in cache, getting contracts")
+	//pageQuery := fmt.Sprintf("page=%v", params.Page)
+	//limitQuery := fmt.Sprintf("limit=%v", params.Limit)
+	url := baseUrl + "/my/contracts" // + pageQuery + "&" + limitQuery
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Println(err.Error())
+		response.RespondWithHTML(w, "unable to get contracts", http.StatusInternalServerError)
+		return
+	}
+	
+	agentToken, err := resources.DB.GetAgentTokenById(r.Context(), session.AgentID.UUID)
+	if err != nil {
+		response.RespondWithError(w, "couldn't get agentid", http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+agentToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println(err.Error())
 		response.RespondWithHTMLError(w, "unable to get contracts", http.StatusInternalServerError)
 		return
 	}
-	log.Println(t.Contracts)
-	response.RespondWithTemplate(w, "contracts.html", t)
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("unable to unmarshal contract: ", err.Error())
+		response.RespondWithHTMLError(w, "unable to get contract", http.StatusInternalServerError)
+		return
+	}
+
+	contractsResponse = spec.ContractsResponse{}
+	err = json.Unmarshal(body, &contractsResponse)
+	if err != nil {
+		log.Println(err.Error())
+		response.RespondWithHTMLError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t, ok := contractsResponse.(spec.ContractsResponse)
+	if !ok {
+		log.Println("contracts response is not of type contracts response. possibly no contracts to get")
+		response.RespondWithTemplate(w, "contracts.html", nil)
+		return
+	}
+
+	resources.Cache.Add("myContracts", t, 0)
+	response.RespondWithTemplate(w, "contracts.html", contractsResponse)
 }
+
 func (s Server) GetContract(w http.ResponseWriter, r *http.Request, contractId string) {
 	resources, ok := middleware.GetResources(r.Context())
 	if !ok {

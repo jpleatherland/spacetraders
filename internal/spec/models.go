@@ -56,7 +56,16 @@ type ContractResponse struct {
 
 type ContractsResponse struct {
 	Contracts []Contract `json:"data"`
-	Meta Meta `json:"meta"`
+	Meta      Meta       `json:"meta"`
+}
+
+type ShipsResponse struct {
+	Ships []Ship `json:"data"`
+	Meta  Meta   `json:"meta"`
+}
+
+type WaypointResponse struct {
+	Waypoint Waypoint `json:"data"`
 }
 
 var Factions = [19]FactionSymbol{

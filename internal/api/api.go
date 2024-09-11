@@ -1,10 +1,13 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/jpleatherland/spacetraders/internal/spec"
 )
+
+var baseUrl string = "https://api.spacetraders.io/v2"
 
 type Server struct{}
 
@@ -14,7 +17,6 @@ func NewServer() Server {
 
 func (s Server) GetFactions(w http.ResponseWriter, r *http.Request, params spec.GetFactionsParams) {}
 func (s Server) GetFaction(w http.ResponseWriter, r *http.Request, factionSymbol string)           {}
-func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.GetMyShipsParams) {}
 func (s Server) PurchaseShip(w http.ResponseWriter, r *http.Request)                             {}
 func (s Server) GetMyShip(w http.ResponseWriter, r *http.Request, shipSymbol string)             {}
 func (s Server) GetMyShipCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)        {}
@@ -54,6 +56,8 @@ func (s Server) GetSystem(w http.ResponseWriter, r *http.Request, systemSymbol s
 func (s Server) GetSystemWaypoints(w http.ResponseWriter, r *http.Request, systemSymbol string, params spec.GetSystemWaypointsParams) {
 }
 func (s Server) GetWaypoint(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {
+	log.Println("in get waypoint")
+	log.Println(systemSymbol, waypointSymbol)
 }
 func (s Server) GetConstruction(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {
 }

@@ -63,7 +63,7 @@ func main() {
 	mux.HandleFunc("GET /contracts", web.Contracts)
 	mux.HandleFunc("GET /agentinfo", web.AgentInfo)
 	mux.HandleFunc("GET /fleet", web.Fleet)
-	mux.HandleFunc("GET /systemdetails", web.SystemDetails)
+	mux.HandleFunc("GET /system/{system}/{waypoint}", web.SystemDetails)
 
 	mux.HandleFunc("GET /", index)
 
