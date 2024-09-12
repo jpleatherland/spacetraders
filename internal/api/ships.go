@@ -27,6 +27,7 @@ func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.G
 	cachedShipsResponse, ok := resources.Cache.Get("myShips")
 	if ok {
 		response.RespondWithPartialTemplate(w, "fleetPartials", "myships.html", cachedShipsResponse)
+		return
 	}
 
 	log.Println("not found in cache, getting ships")

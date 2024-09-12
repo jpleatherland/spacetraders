@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/jpleatherland/spacetraders/internal/spec"
@@ -51,14 +50,6 @@ func (s Server) SiphonResources(w http.ResponseWriter, r *http.Request, shipSymb
 func (s Server) CreateSurvey(w http.ResponseWriter, r *http.Request, shipSymbol string)           {}
 func (s Server) TransferCargo(w http.ResponseWriter, r *http.Request, shipSymbol string)          {}
 func (s Server) WarpShip(w http.ResponseWriter, r *http.Request, shipSymbol string)               {}
-func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.GetSystemsParams)  {}
-func (s Server) GetSystem(w http.ResponseWriter, r *http.Request, systemSymbol string)            {}
-func (s Server) GetSystemWaypoints(w http.ResponseWriter, r *http.Request, systemSymbol string, params spec.GetSystemWaypointsParams) {
-}
-func (s Server) GetWaypoint(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {
-	log.Println("in get waypoint")
-	log.Println(systemSymbol, waypointSymbol)
-}
 func (s Server) GetConstruction(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {
 }
 func (s Server) SupplyConstruction(w http.ResponseWriter, r *http.Request, systemSymbol string, waypointSymbol string) {

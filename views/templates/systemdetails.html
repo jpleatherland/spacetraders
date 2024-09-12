@@ -1,1 +1,10 @@
 <p> I am systems </p>
+{{ if .Waypoint }}
+  <div hx-get={{ printf "/systems/%s/waypoints/%s" .System .Waypoint }} hx-trigger="load">
+  </div>
+{{ else if .System }}
+  <div hx-get={{ printf "/systems/%s" .System .Waypoint }} hx-trigger="load">
+  </div>
+{{ else }}
+  <p>Search for a system below or select a ship location on the <a hx-get="/fleet">fleet page</a></p>
+{{ end }}

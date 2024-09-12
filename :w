@@ -1,0 +1,10 @@
+{{ if .Waypoint }}
+<p> I am systems </p>
+	if len(waypoint) > 0 {
+		routes.GetWaypoint(rw, req, system, waypoint)
+	}
+<div hx-get={{ printf "/system/%s/waypoint/%s" .System .Waypoint }} trigger="load">
+</div>
+{{ else }}
+<p>Search for a system below or select a ship location on the <a hx-get="/fleet">fleet page</a></p>
+{{ end }}

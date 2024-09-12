@@ -1,21 +1,32 @@
 package web
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 	"text/template"
 
 	"github.com/jpleatherland/spacetraders/internal/response"
-	"github.com/jpleatherland/spacetraders/internal/routes"
 )
 
+type SystemDetailsPageData struct {
+	System   string
+	Waypoint string
+}
+
 func SystemDetails(rw http.ResponseWriter, req *http.Request) {
-	system := req.PathValue(system)
-	waypoint := req.PathValue(waypoint)
-	routes.GetWaypoint(rw, req, system, waypoint)
+log.Println("in web system details")
+	system := req.PathValue("system")
+	waypoint := req.PathValue("waypoint")
+	pageData := SystemDetailsPageData{
+		System:   system,
+		Waypoint: waypoint,
+	}
+	log.Println(system, waypoint)
 	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", "systemdetails.html")))
-	err := tmpl.Execute(rw, nil)
+	err := tmpl.Execute(rw, pageData)
 	if err != nil {
+		log.Println("error ", err.Error())
 		response.RespondWithHTML(rw, "Unable to load systems", http.StatusInternalServerError)
 	}
 }

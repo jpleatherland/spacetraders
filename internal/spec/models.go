@@ -68,6 +68,11 @@ type WaypointResponse struct {
 	Waypoint Waypoint `json:"data"`
 }
 
+type SystemList struct {
+	Systems []System `json:"data"`
+	Meta Meta `json:"meta"`
+}
+
 var Factions = [19]FactionSymbol{
 	FactionSymbolAEGIS,
 	FactionSymbolANCIENTS,
