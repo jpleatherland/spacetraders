@@ -1,10 +1,18 @@
 <p> I am systems </p>
+<p> I AM SYSTEM LIST </p>
+<div hx-get="/systems" hx-trigger="load">
+</div>
 {{ if .Waypoint }}
+<p> I AM WAYPOINT </p>
   <div hx-get={{ printf "/systems/%s/waypoints/%s" .System .Waypoint }} hx-trigger="load">
   </div>
-{{ else if .System }}
-  <div hx-get={{ printf "/systems/%s" .System .Waypoint }} hx-trigger="load">
+{{ else }}
+  <p> No waypoint selected. Select a waypoint from the system panel or <a hx-get="/fleet">fleet page</a></p>
+{{ end }}
+{{ if .System }}
+<p> I AM SYSTEM </p>
+  <div hx-get={{ printf "/systems/%s" .System }} hx-trigger="load">
   </div>
 {{ else }}
-  <p>Search for a system below or select a ship location on the <a hx-get="/fleet">fleet page</a></p>
+  <p>Search for a system below, select from the system list or select a ship location on the <a hx-get="/fleet">fleet page</a></p>
 {{ end }}

@@ -95,7 +95,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 
 	log.Println("not found in cache, getting systems")
 
-	path := "/systems"
+	path := "/v2/systems"
 	queryParams := url.Values{}
 	queryParams.Add("page", page)
 	queryParams.Add("limit", limit)
@@ -126,6 +126,11 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 		return
 	}
 
+	systemListResponse.CurrentPage = (systemListResponse.Meta.Page/systemListResponse.Meta.Limit) + 1
+	systemListResponse.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit -1) / systemListResponse.Meta.Limit
+
 	resources.Cache.Add("systemList"+page+limit, systemListResponse, 120)
 	response.RespondWithPartialTemplate(w, "systemPartial", "systemList.html", systemListResponse)
 }
+
+

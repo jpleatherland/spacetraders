@@ -1,5 +1,11 @@
 <div class="h-screen flex justify-center items-center dark:bg-gray-800">
-
+  <content>
+    <ul>
+    {{ range .Systems }}
+      <li>{{ .Symbol }} </li>
+    {{ end }}
+    </ul>
+  </content>
   <div class="p-2 border-t dark:border-gray-700  w-full">
     <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between">
       <div class="flex justify-between items-center flex-1 lg:hidden">

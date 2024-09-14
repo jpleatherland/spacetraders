@@ -64,6 +64,7 @@ func main() {
 	mux.HandleFunc("GET /agentinfo", web.AgentInfo)
 	mux.HandleFunc("GET /fleet", web.Fleet)
 	mux.HandleFunc("GET /systems/{system}/{waypoint}", web.SystemDetails)
+	mux.HandleFunc("GET /systemdetails", web.SystemDetails)
 
 	mux.HandleFunc("GET /", index)
 
