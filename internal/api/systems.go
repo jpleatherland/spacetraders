@@ -130,7 +130,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 	systemListResponse.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit -1) / systemListResponse.Meta.Limit
 
 	resources.Cache.Add("systemList"+page+limit, systemListResponse, 120)
-	response.RespondWithPartialTemplate(w, "systemPartial", "systemList.html", systemListResponse)
+	response.RespondWithPartialTemplate(w, "systemPartials", "systemList.html", systemListResponse)
 }
 
 

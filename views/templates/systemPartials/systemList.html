@@ -58,7 +58,7 @@
       <div class="hidden flex-1 items-center lg:grid grid-cols-3">
         <div class="flex items-center">
           <div class="pl-2 text-sm font-medium dark:text-white">
-            Showing {{ .Meta.Page }} to {{ .Meta.Page + .Meta.Limit }} of {{ .Meta.Total }} results
+            Showing {{ .Meta.Page }} to {{ len (printf "%*s%*s" .Meta.Page "" .Meta.Limit "") }} of {{ .Meta.Total }} results
           </div>
         </div>
 
