@@ -1,11 +1,11 @@
-<div class="h-screen flex justify-center items-center dark:bg-gray-800">
-  <content>
-    <ul>
+<content>
+  <ul>
     {{ range .Systems }}
-      <li>{{ .Symbol }} </li>
+    <li>{{ .Symbol }} </li>
     {{ end }}
-    </ul>
-  </content>
+  </ul>
+</content>
+<div class="h-screen flex justify-center items-center dark:bg-gray-800">
   <div class="p-2 border-t dark:border-gray-700  w-full">
     <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between">
       <div class="flex justify-between items-center flex-1 lg:hidden">
@@ -58,7 +58,8 @@
       <div class="hidden flex-1 items-center lg:grid grid-cols-3">
         <div class="flex items-center">
           <div class="pl-2 text-sm font-medium dark:text-white">
-            Showing {{ .Meta.Page }} to {{ len (printf "%*s%*s" .Meta.Page "" .Meta.Limit "") }} of {{ .Meta.Total }} results
+            Showing {{ .Meta.Page }} to {{ .Pagination.DisplayLimit }} of {{ .Meta.Total }}
+            results
           </div>
         </div>
 

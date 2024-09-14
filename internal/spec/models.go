@@ -71,12 +71,13 @@ type WaypointResponse struct {
 type SystemList struct {
 	Systems []System `json:"data"`
 	Meta Meta `json:"meta"`
-	Pagination
+	Pagination Pagination
 }
 
 type Pagination struct {
 	CurrentPage int
 	TotalPages int
+	DisplayLimit int
 }
 
 var Factions = [19]FactionSymbol{

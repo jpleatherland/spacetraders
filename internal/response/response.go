@@ -42,17 +42,17 @@ func RespondWithHTMLError(rw http.ResponseWriter, error string, code int) {
 	RespondWithHTML(rw, errMsg, code)
 }
 
-func RespondWithTemplate(rw http.ResponseWriter, templateName string, templateData interface{}){
+func RespondWithTemplate(rw http.ResponseWriter, templateName string, templateData interface{}) {
 	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", templateName)))
-    err := tmpl.Execute(rw, templateData)
+	err := tmpl.Execute(rw, templateData)
 	if err != nil {
 		RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func RespondWithPartialTemplate(rw http.ResponseWriter, partialFolderName, templateName string, templateData interface{}){
+func RespondWithPartialTemplate(rw http.ResponseWriter, partialFolderName, templateName string, templateData interface{}) {
 	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", partialFolderName, templateName)))
-    err := tmpl.Execute(rw, templateData)
+	err := tmpl.Execute(rw, templateData)
 	if err != nil {
 		RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 	}
