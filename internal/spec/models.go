@@ -72,12 +72,14 @@ type SystemList struct {
 	Systems []System `json:"data"`
 	Meta Meta `json:"meta"`
 	Pagination Pagination
+	PagesString string
 }
 
 type Pagination struct {
 	CurrentPage int
 	TotalPages int
 	DisplayLimit int
+	Pages []string
 }
 
 var Factions = [19]FactionSymbol{

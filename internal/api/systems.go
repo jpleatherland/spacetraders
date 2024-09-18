@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
@@ -87,7 +88,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 		limit = strconv.Itoa(*params.Limit)
 	}
 
-	cachedWaypoint, ok := resources.Cache.Get("systemList"+page+limit)
+	cachedWaypoint, ok := resources.Cache.Get("systemList" + page + limit)
 	if ok {
 		response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", cachedWaypoint)
 		return
@@ -126,12 +127,18 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 		return
 	}
 
-	systemListResponse.Pagination.CurrentPage = (systemListResponse.Meta.Page/systemListResponse.Meta.Limit) + 1
-	systemListResponse.Pagination.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit -1) / systemListResponse.Meta.Limit
-	systemListResponse.Pagination.DisplayLimit = systemListResponse.Meta.Page+systemListResponse.Meta.Limit-1
+	systemListResponse.Pagination.CurrentPage = (systemListResponse.Meta.Page / systemListResponse.Meta.Limit) + 1
+	systemListResponse.Pagination.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit - 1) / systemListResponse.Meta.Limit
+	systemListResponse.Pagination.DisplayLimit = systemListResponse.Meta.Page + systemListResponse.Meta.Limit - 1
+	systemListResponse.Pagination.Pages = make([]string, systemListResponse.Pagination.TotalPages)
+	for i := 1; i <= systemListResponse.Pagination.TotalPages; i++ {
+		systemListResponse.Pagination.Pages[i-1] = strconv.Itoa(i)
+	}
+	pagesString, err := json.Marshal(systemListResponse.Pagination.Pages)
+	systemListResponse.PagesString = string(pagesString)
+	systemListResponse.PagesString = strings.Replace(systemListResponse.PagesString, "\"", "'", -1)
+	log.Println(pagesString[:10])
 
 	resources.Cache.Add("systemList"+page+limit, systemListResponse, 120)
 	response.RespondWithPartialTemplate(w, "systemPartials", "systemList.html", systemListResponse)
 }
-
-

@@ -1,18 +1,26 @@
-<p> I am systems </p>
-<p> I AM SYSTEM LIST </p>
-<div hx-get="/systems" hx-trigger="load">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-8">
+  <div class="h-600 rounded-lg bg-gray-200">
+    <p>I am system list </p>
+    <div hx-get="/systems" hx-trigger="load">
+    </div>
+  </div>
+  <div class="h-600 rounded-lg bg-gray-200">
+    {{ if .System }}
+    <p> I AM SYSTEM </p>
+    <div hx-get={{ printf "/systems/%s" .System }} hx-trigger="load">
+    </div>
+    {{ else }}
+    <p>Search for a system below, select from the system list or select a ship location on the <a hx-get="/fleet">fleet
+        page</a></p>
+    {{ end }}
+  </div>
+  <div class="h-600 rounded-lg bg-gray-200 lg:col-span-2">
+    {{ if .Waypoint }}
+    <p> I AM WAYPOINT </p>
+    <div hx-get={{ printf "/systems/%s/waypoints/%s" .System .Waypoint }} hx-trigger="load">
+    </div>
+    {{ else }}
+    <p> No waypoint selected. Select a waypoint from the system panel or <a hx-get="/fleet">fleet page</a></p>
+    {{ end }}
+  </div>
 </div>
-{{ if .Waypoint }}
-<p> I AM WAYPOINT </p>
-  <div hx-get={{ printf "/systems/%s/waypoints/%s" .System .Waypoint }} hx-trigger="load">
-  </div>
-{{ else }}
-  <p> No waypoint selected. Select a waypoint from the system panel or <a hx-get="/fleet">fleet page</a></p>
-{{ end }}
-{{ if .System }}
-<p> I AM SYSTEM </p>
-  <div hx-get={{ printf "/systems/%s" .System }} hx-trigger="load">
-  </div>
-{{ else }}
-  <p>Search for a system below, select from the system list or select a ship location on the <a hx-get="/fleet">fleet page</a></p>
-{{ end }}
