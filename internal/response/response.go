@@ -50,10 +50,12 @@ func RespondWithTemplate(rw http.ResponseWriter, templateName string, templateDa
 	}
 }
 
-func RespondWithPartialTemplate(rw http.ResponseWriter, partialFolderName, templateName string, templateData interface{}) {
-	tmpl := template.Must(template.ParseGlob(filepath.Join("views", "templates", partialFolderName, templateName)))
+func RespondWithPartialTemplate(rw http.ResponseWriter, partialFolderName, templateName string, templateData interface{}, funcMap template.FuncMap) {
+	tmpl := template.New(templateName).Funcs(funcMap)
+	tmpl = template.Must(tmpl.ParseGlob(filepath.Join("views", "templates", partialFolderName, templateName)))
 	err := tmpl.Execute(rw, templateData)
 	if err != nil {
 		RespondWithHTMLError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
+

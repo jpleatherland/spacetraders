@@ -28,12 +28,12 @@
     </div>
 
     <div class="flex items-center gap-2 rtl:space-x-reverse">
-      <select
+      <select id="limit" name="limit" hx-get="/systems?page={{ .Meta.Page }}" hx-trigger="change" hx-target="#systemList"
         class="h-8 text-sm px-2 leading-none transition duration-75 border-gray-300 rounded-lg shadow-sm outline-none focus:border-yellow-500 focus:ring-1 focus:ring-inset focus:ring-yellow-500 dark:text-white dark:bg-gray-700 dark:border-gray-600 dark:focus:border-yellow-500">
-        <option value="5">5</option>
-        <option value="10" selected="selected">10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
+        <option value="5" {{ if eq .Meta.Limit 5 }} selected {{ end }}>5</option>
+        <option value="10" {{ if eq .Meta.Limit 10 }} selected {{ end }}>10</option>
+        <option value="15" {{ if eq .Meta.Limit 15 }} selected {{ end }}>15</option>
+        <option value="20" {{ if eq .Meta.Limit 20 }} selected {{ end }}>20</option>
       </select>
 
       <span class="text-sm font-medium dark:text-white">
@@ -43,7 +43,9 @@
 
     <div class="h-10">
       <nav class="h-10 isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-        <a href="#"
+
+        <!-- previous -->
+        <a hx-get="/systems?page={{ sub .Meta.Page .Meta.Limit }}&limit={{ .Meta.Limit }}" hx-target="#systemList"
           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
           <span class="sr-only">Previous</span>
           <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -53,10 +55,11 @@
           </svg>
         </a>
 
+        <!-- 1 -->
         <a href="#" aria-current="page"
           class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">1</a>
 
-        <!-- Drop down to select the page you want if no in the current list -->
+        <!-- Drop down to select the page you want -->
         <span
           class="h-10 relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
           <div x-data="{ search: '' , open: false, items: {{ .PagesString }}, get filteredItems() {
@@ -83,7 +86,7 @@
           class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{
           .Pagination.TotalPages }}</a>
 
-        <a href="#"
+        <a hx-get="/systems?page={{ add .Meta.Page .Meta.Limit }}&limit={{ .Meta.Limit }}" hx-target="#systemList"
           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
           <span class="sr-only">Next</span>
           <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

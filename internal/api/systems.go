@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/jpleatherland/spacetraders/internal/middleware"
 	"github.com/jpleatherland/spacetraders/internal/response"
@@ -24,7 +25,7 @@ func (s Server) GetWaypoint(w http.ResponseWriter, r *http.Request, systemSymbol
 
 	cachedWaypoint, ok := resources.Cache.Get(waypointSymbol)
 	if ok {
-		response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", cachedWaypoint)
+		response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", cachedWaypoint, nil)
 		return
 	}
 
@@ -60,7 +61,7 @@ func (s Server) GetWaypoint(w http.ResponseWriter, r *http.Request, systemSymbol
 	}
 
 	resources.Cache.Add(waypointSymbol, waypointResponse, 0)
-	response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", waypointResponse)
+	response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", waypointResponse, nil)
 }
 
 func (s Server) GetSystem(w http.ResponseWriter, r *http.Request, systemSymbol string) {
@@ -90,7 +91,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 
 	cachedWaypoint, ok := resources.Cache.Get("systemList" + page + limit)
 	if ok {
-		response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", cachedWaypoint)
+		response.RespondWithPartialTemplate(w, "systemPartials", "waypoint.html", cachedWaypoint, nil)
 		return
 	}
 
@@ -130,6 +131,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 	systemListResponse.Pagination.CurrentPage = (systemListResponse.Meta.Page / systemListResponse.Meta.Limit) + 1
 	systemListResponse.Pagination.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit - 1) / systemListResponse.Meta.Limit
 	systemListResponse.Pagination.DisplayLimit = systemListResponse.Meta.Page + systemListResponse.Meta.Limit - 1
+	log.Println(systemListResponse.Meta.Page, systemListResponse.Meta.Limit, systemListResponse.Pagination.CurrentPage, systemListResponse.Pagination.DisplayLimit)
 	systemListResponse.Pagination.Pages = make([]string, systemListResponse.Pagination.TotalPages)
 	for i := 1; i <= systemListResponse.Pagination.TotalPages; i++ {
 		systemListResponse.Pagination.Pages[i-1] = strconv.Itoa(i)
@@ -139,6 +141,11 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 	systemListResponse.PagesString = strings.Replace(systemListResponse.PagesString, "\"", "'", -1)
 	log.Println(pagesString[:10])
 
+	funcMap := template.FuncMap{
+		"add": middleware.Add,
+		"sub": middleware.Sub,
+	}
+
 	resources.Cache.Add("systemList"+page+limit, systemListResponse, 120)
-	response.RespondWithPartialTemplate(w, "systemPartials", "systemList.html", systemListResponse)
+	response.RespondWithPartialTemplate(w, "systemPartials", "systemList.html", systemListResponse, funcMap)
 }

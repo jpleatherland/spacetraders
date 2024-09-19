@@ -26,7 +26,7 @@ func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.G
 
 	cachedShipsResponse, ok := resources.Cache.Get("myShips")
 	if ok {
-		response.RespondWithPartialTemplate(w, "fleetPartials", "myships.html", cachedShipsResponse)
+		response.RespondWithPartialTemplate(w, "fleetPartials", "myships.html", cachedShipsResponse, nil)
 		return
 	}
 
@@ -72,5 +72,5 @@ func (s Server) GetMyShips(w http.ResponseWriter, r *http.Request, params spec.G
 	}
 
 	resources.Cache.Add("myShips", shipsResponse, 0)
-	response.RespondWithPartialTemplate(w, "fleetPartials", "myships.html", shipsResponse)
+	response.RespondWithPartialTemplate(w, "fleetPartials", "myships.html", shipsResponse, nil)
 }
