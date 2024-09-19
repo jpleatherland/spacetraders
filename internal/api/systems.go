@@ -131,7 +131,7 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 	systemListResponse.Pagination.CurrentPage = (systemListResponse.Meta.Page / systemListResponse.Meta.Limit) + 1
 	systemListResponse.Pagination.TotalPages = (systemListResponse.Meta.Total + systemListResponse.Meta.Limit - 1) / systemListResponse.Meta.Limit
 	systemListResponse.Pagination.DisplayLimit = systemListResponse.Meta.Page + systemListResponse.Meta.Limit - 1
-	log.Println(systemListResponse.Meta.Page, systemListResponse.Meta.Limit, systemListResponse.Pagination.CurrentPage, systemListResponse.Pagination.DisplayLimit)
+
 	systemListResponse.Pagination.Pages = make([]string, systemListResponse.Pagination.TotalPages)
 	for i := 1; i <= systemListResponse.Pagination.TotalPages; i++ {
 		systemListResponse.Pagination.Pages[i-1] = strconv.Itoa(i)
@@ -139,7 +139,6 @@ func (s Server) GetSystems(w http.ResponseWriter, r *http.Request, params spec.G
 	pagesString, err := json.Marshal(systemListResponse.Pagination.Pages)
 	systemListResponse.PagesString = string(pagesString)
 	systemListResponse.PagesString = strings.Replace(systemListResponse.PagesString, "\"", "'", -1)
-	log.Println(pagesString[:10])
 
 	funcMap := template.FuncMap{
 		"add": middleware.Add,
